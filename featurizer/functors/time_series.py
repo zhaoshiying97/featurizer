@@ -24,7 +24,7 @@ class RollingMean(Functor):
         self._window = window
 
     def forward(self, tensor):
-        return tsf.rolling_mean(tensor, window=self._window)
+        return tsf.rolling_mean_(tensor, window=self._window)
 
 class RollingWeightedMean(Functor):
     

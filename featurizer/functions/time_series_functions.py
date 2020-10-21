@@ -14,7 +14,7 @@
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
-
+from scipy.stats import rankdata
 import torch
 import numpy as np
 import pandas as pd
@@ -176,3 +176,26 @@ def rolling_max(tensor, window):
     output_df = tensor_df.rolling(window).max()
     output_tensor = torch.tensor(output_df.values, dtype=tensor.dtype, device=tensor.device)
     return output_tensor
+
+def rolling_rank(np_data):
+    return rankdata(np_data)[-1]
+
+
+def ts_rank(data_ts, window=10):
+    data_df=pd.DataFrame(data_ts)
+    output_df = data_df.rolling(window).apply(rolling_rank, raw=False)
+    output_np= np.array(output_df)
+    output_tf=torch.tensor(output_np)
+    return output_tf
+
+#
+def rank(data_ts, axis=1, pct=True):
+    data_df=pd.DataFrame(data_ts)
+    output_df = data_df.rank(axis=axis, pct=pct)
+    output_np = np.array(output_df)
+    output_tf = torch.tensor(output_np)
+    return output_tf
+
+def rolling_scale(data_ts, window=10, k=1):
+    output = k * data_ts / rolling_sum_(torch.abs(data_ts), window=window)
+    return output

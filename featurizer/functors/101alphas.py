@@ -10,6 +10,15 @@ import featurizer.functors.journalhub as jf
 import featurizer.functors.time_series as tf
 from featurizer.functions import time_series_functions as tsf
 
+class Alpha001(Functor):#highestDownsideStdDay
+    def __init__(self):
+        pass
+    def forward(self, close_ts, returns_ts):  # , close, returns
+        downside_std = tsf.downside_std(returns_ts)
+        inner = close_ts.copy()
+        inner[returns_ts < 0] = tsf.rolling_std(returns_ts,20)
+        result = tsf.rank(tsf.ts_argmax(inner ** 2, 5))
+
 
 class Alpha006(Functor):
 

@@ -15,19 +15,19 @@ class Alpha001(Functor):
         return output_tensor
 
 
-# class Alpha002(Functor):  #Bug not solved: tsf.rolling_corr won`t work with rank
-#
-#     def forward(self, open_ts, close_ts, volume_ts):  # volume
-#         output_tensor = -1 * tsf.rolling_corr(tsf.rank(tsf.diff(torch.log(volume_ts), 2)),
-#                                    tsf.rank((close_ts - open_ts) / open_ts), 6)
-#         return output_tensor  # .values`
+class Alpha002(Functor):
+
+    def forward(self, open_ts, close_ts, volume_ts):  # volume
+        output_tensor = -1 * tsf.rolling_corr(tsf.rank(tsf.diff(torch.log(volume_ts), 2)),
+                                   tsf.rank((close_ts - open_ts) / open_ts), 6)
+        return output_tensor  # .values`
 
 
-# class Alpha003(Functor):  #Bug not solved: tsf.rolling_corr won`t work with rank
-#
-#     def forward(self, open_ts, volume_ts):
-#         output_tensor = -1 * tsf.rolling_corr(tsf.rank(open_ts), tsf.rank(volume_ts), 10)
-#         return output_tensor  # .values
+class Alpha003(Functor):
+
+    def forward(self, open_ts, volume_ts):
+        output_tensor = -1 * tsf.rolling_corr(tsf.rank(open_ts), tsf.rank(volume_ts), 10)
+        return output_tensor  # .values
 
 
 class Alpha004(Functor):
@@ -257,7 +257,7 @@ class Alpha030(Functor):
         return alpha
 
 
-# class Alpha031(Functor):
+# class Alpha031(Functor):  # decay_linear
 #
 #    def forward(self, low_ts, close_ts, volume_ts):
 #         adv20 = tsf.rolling_mean(volume_ts, 20)
@@ -289,12 +289,12 @@ class Alpha035(Functor):
                 1 - tsf.ts_rank(returns_ts, 32))
 
 
-# class Alpha037(Functor):
-#
-#     def forward(self, open_ts, close_ts):
-#         alpha = tsf.rank(tsf.rolling_corr(tsf.shift(open_ts - close_ts, 1), close_ts, 200)) + tsf.rank(
-#             open_ts - close_ts)
-#         return alpha
+class Alpha037(Functor):
+
+    def forward(self, open_ts, close_ts):
+        alpha = tsf.rank(tsf.rolling_corr(tsf.shift(open_ts - close_ts, 1), close_ts, 200)) + tsf.rank(
+            open_ts - close_ts)
+        return alpha
 
 
 class Alpha038(Functor):
@@ -305,7 +305,7 @@ class Alpha038(Functor):
         return alpha
 
 
-# class Alpha039(Functor):
+# class Alpha039(Functor):  # decay_linear
 #
 #    def forward(self, close_ts, volume_ts, returns_ts):
 #         adv20 = func.sma(volume_np, 20)
@@ -327,11 +327,11 @@ class Alpha043(Functor):
         return alpha
 
 
-# class Alpha044(Functor):  # Bug not solved: tsf.rolling_corr+rank
-#
-#     def forward(self, high_ts, volume_ts):
-#         output_tensor = tsf.rolling_corr(high_ts, tsf.rank(volume_ts), 5)
-#         return -1 * output_tensor
+class Alpha044(Functor):
+
+    def forward(self, high_ts, volume_ts):
+        output_tensor = tsf.rolling_corr(high_ts, tsf.rank(volume_ts), 5)
+        return -1 * output_tensor
 
 
 class Alpha045(Functor):
@@ -365,7 +365,7 @@ class Alpha049(Functor):
         cond = (inner < -0.1)
         ones = torch.ones(close_ts.size()).squeeze()
         result = torch.where(cond, ones, alpha)
-        return result  # .values
+        return result
 
 
 class Alpha051(Functor):
@@ -410,11 +410,11 @@ class Alpha054(Functor):
         return result
 
 
-# class Alpha055(Functor):
-#
-#     def forward(self, high_ts, low_ts, close_ts, volume_ts):
-#         divisor = (tsf.rolling_max(high_ts, 12) - tsf.rolling_min(low_ts, 12)).replace(0, 0.0001)
-#         inner = (close_ts - tsf.ts_min(low_ts, 12)) / (divisor)
-#         ts = tsf.rolling_corr(tsf.rank(inner), tsf.rank(volume_ts), 6)
-#         output_tensor = -1 * ts
-#         return output_tensor
+class Alpha055(Functor):
+
+    def forward(self, high_ts, low_ts, close_ts, volume_ts):
+        divisor = (tsf.rolling_max(high_ts, 12) - tsf.rolling_min(low_ts, 12)).replace(0, 0.0001)
+        inner = (close_ts - tsf.ts_min(low_ts, 12)) / (divisor)
+        ts = tsf.rolling_corr(tsf.rank(inner), tsf.rank(volume_ts), 6)
+        output_tensor = -1 * ts
+        return output_tensor

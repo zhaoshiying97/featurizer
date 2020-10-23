@@ -20,14 +20,14 @@ class Alpha002(Functor):
     def forward(self, open_ts, close_ts, volume_ts):  # volume
         output_tensor = -1 * tsf.rolling_corr(tsf.rank(tsf.diff(torch.log(volume_ts), 2)),
                                    tsf.rank((close_ts - open_ts) / open_ts), 6)
-        return output_tensor  # .values`
+        return output_tensor
 
 
 class Alpha003(Functor):
 
     def forward(self, open_ts, volume_ts):
         output_tensor = -1 * tsf.rolling_corr(tsf.rank(open_ts), tsf.rank(volume_ts), 10)
-        return output_tensor  # .values
+        return output_tensor
 
 
 class Alpha004(Functor):

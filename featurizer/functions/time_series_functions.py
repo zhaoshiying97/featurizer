@@ -41,10 +41,12 @@ def rolling_sum3d(tensor, window=1, dim=1):
     return ret
 
 def rolling_mean(tensor, window=1):
-    ret = torch.cumsum(tensor, dim=0)
-    ret[window:] = ret[window:] - ret[:-window]
-    ret[:window-1]= float("nan")
-    return ret/window
+    #to-do fixme
+    #ret = torch.cumsum(tensor, dim=0)
+    #ret[window:] = ret[window:] - ret[:-window]
+    #ret[:window-1]= float("nan")
+    #output = ret/window
+    return rolling_mean_(tensor=tensor, window=window)
 
 def rolling_mean_(tensor, window=1):
     tensor_np = tensor.cpu().detach().numpy()

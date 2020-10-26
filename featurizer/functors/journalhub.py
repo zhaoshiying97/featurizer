@@ -76,7 +76,7 @@ class AmihudRatio(Functor):
         return tsf.rolling_mean_(output, window=self._window)
 
 
-class ResidualReturnsStd(Functor):
+class ResidualStd(Functor):
     """Idiosyncratic (returns) STD"""
     def __init__(self, window_train=10, window_test=3, window=3):
         self._window_train = window_train
@@ -90,7 +90,7 @@ class ResidualReturnsStd(Functor):
         residual = residual.squeeze(-1).transpose(0,1)
         return tsf.rolling_std(residual, self._window)
 
-class ResidualReturnsMean(Functor):
+class ResidualMean(Functor):
     """Idiosyncratic (returns) mean"""
     def __init__(self, window_train=10, window_test=3, window=3):
         self._window_train = window_train

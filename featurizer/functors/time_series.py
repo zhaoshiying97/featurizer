@@ -14,6 +14,7 @@
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
+import torch
 from featurizer.interface import Functor
 from featurizer.functions import time_series_functions as tsf
 
@@ -86,6 +87,16 @@ class RollingMax(Functor):
     
     def forward(self, tensor):
         return tsf.rolling_max(tensor, window=self._window)
+
+class RollingMaxDrawdown(Functor):
+    
+    def __init__(self, window):
+        self._window = window
+    
+    def forward(self, tensor: torch.tensor) -> torch.tensor:
+        return tsf.rolling_max_drawdown(data_ts = tensor, window = self._window)
+
+
 
 if __name__ == "__main__":
     import torch

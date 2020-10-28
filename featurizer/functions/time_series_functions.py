@@ -19,7 +19,7 @@ import torch
 import numpy as np
 import pandas as pd
 from featurizer.functions.algebra_statistic import weighted_average, weighted_std, downside_std
-
+import pdb
 # https://stackoverflow.com/questions/14313510/how-to-calculate-moving-average-using-numpy
 def rolling_sum(tensor, window=1, dim=0):
     ret = torch.cumsum(tensor, dim=dim)
@@ -221,3 +221,25 @@ def ts_argmin(data_ts,window=10):
     output_np = np.array(output_df)
     output_tensor = torch.tensor(output_np).squeeze()
     return output_tensor
+
+# ================================================================== #
+# functions in financial domain                                      #
+# ================================================================== #
+def max_drawdown(tensor_np: np.ndarray) -> float:
+    expanding_max = np.maximum.accumulate(tensor_np)
+    dd = (tensor_np - expanding_max) / expanding_max
+    max_dd = dd.min()
+    return max_dd
+
+def rolling_max_drawdown(data_ts: torch.tensor, window: int) -> torch.tensor:
+    tensor_np = data_ts.cpu().detach().numpy()
+    tensor_df = pd.DataFrame(tensor_np)
+    output_df = tensor_df.rolling(window).apply(max_drawdown, raw=False)
+    output_np = np.array(output_df)
+    output_ts = torch.tensor(output_np).squeeze()
+    return output_ts
+   
+
+    
+
+

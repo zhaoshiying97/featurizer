@@ -19,7 +19,7 @@ import torch
 import numpy as np
 import pandas as pd
 from featurizer.functions.algebra_statistic import weighted_average, weighted_std, downside_std
-
+import pdb
 # https://stackoverflow.com/questions/14313510/how-to-calculate-moving-average-using-numpy
 def rolling_sum(tensor, window=1, dim=0):
     ret = torch.cumsum(tensor, dim=dim)
@@ -223,28 +223,20 @@ def ts_argmin(data_ts,window=10):
     return output_tensor
 
 
-def max_drawdown_series(pnl: pd.Series) -> float:
-    expanding_max = pnl.expanding().max()
-    dd = (pnl - expanding_max)/expanding_max
+# ================================================================== #
+# functions in financial domain                                      #
+# ================================================================== #
+def max_drawdown(tensor_np: np.ndarray) -> float:
+    expanding_max = np.maximum.accumulate(tensor_np)
+    dd = (tensor_np - expanding_max) / expanding_max
     max_dd = dd.min()
     return max_dd
-    
-    
-def max_drawdown_list(net_value: list) -> float:
-    net_value_np = np.array(net_value)
-    expanding_max = np.maximum.accumulate(net_value_np)
-    dd = (net_value_np - expanding_max) / expanding_max
-    max_dd = dd.min()
-    return max_dd 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+def rolling_max_drawdown(data_ts: torch.tensor, window: int) -> torch.tensor:
+    tensor_np = data_ts.cpu().detach().numpy()
+    tensor_df = pd.DataFrame(tensor_np)
+    output_df = tensor_df.rolling(window).apply(max_drawdown, raw=False)
+    output_np = np.array(output_df)
+    output_ts = torch.tensor(output_np).squeeze()
+    return output_ts
+   

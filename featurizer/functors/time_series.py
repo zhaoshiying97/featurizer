@@ -71,6 +71,14 @@ class RollingSkew(Functor):
     def forward(self, tensor):
         return tsf.rolling_skew(tensor, window=self._window)   
 
+class RollingKurt(Functor):
+    
+    def __init__(self, window):
+        self._window = window
+    
+    def forward(self, tensor):
+        return tsf.rolling_kurt(tensor, window = self._window)
+
 class PctChange(Functor):
 
     def __init__(self, window=1):

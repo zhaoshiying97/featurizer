@@ -221,3 +221,30 @@ def ts_argmin(data_ts,window=10):
     output_np = np.array(output_df)
     output_tensor = torch.tensor(output_np).squeeze()
     return output_tensor
+
+
+def max_drawdown_series(pnl: pd.Series) -> float:
+    expanding_max = pnl.expanding().max()
+    dd = (pnl - expanding_max)/expanding_max
+    max_dd = dd.min()
+    return max_dd
+    
+    
+def max_drawdown_list(net_value: list) -> float:
+    net_value_np = np.array(net_value)
+    expanding_max = np.maximum.accumulate(net_value_np)
+    dd = (net_value_np - expanding_max) / expanding_max
+    max_dd = dd.min()
+    return max_dd 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

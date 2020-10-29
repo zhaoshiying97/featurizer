@@ -244,16 +244,27 @@ def rolling_cumulation(data_ts: torch.tensor, window:int) -> torch.tensor:
 
 
 def _max_drawdown(tensor_np: np.ndarray) -> float:
+    ''' input is price '''
     expanding_max = np.maximum.accumulate(tensor_np)
     dd = (tensor_np - expanding_max) / expanding_max
     max_dd = dd.min()
     return max_dd
 
 def rolling_max_drawdown(data_ts: torch.tensor, window: int) -> torch.tensor:
+    ''' input is price '''
     tensor_np = data_ts.cpu().detach().numpy()
     tensor_df = pd.DataFrame(tensor_np)
     output_df = tensor_df.rolling(window).apply(_max_drawdown, raw=False)
     output_np = np.array(output_df)
     output_ts = torch.tensor(output_np).squeeze()
     return output_ts
-   
+
+def rolling_max_drawdown_from_returns(data_ts: torch.tensor, window: int) -> torch.tensor:
+    ''' input is returns '''
+    returns = data_ts.cpu().detach().numpy() # returns is np
+    returns = pd.DataFrame(returns) # returns is df
+    price = (1 + returns).cumprod() # price is df
+    output = price.rolling(window).apply(_max_drawdown, raw=False)
+    output = np.array(output) # price is np
+    output = torch.tensor(output).squeeze() # price is tensor
+    return output

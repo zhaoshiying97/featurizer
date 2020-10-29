@@ -233,7 +233,17 @@ def ts_argmin(data_ts,window=10):
 # ================================================================== #
 # functions in financial domain                                      #
 # ================================================================== #
-def max_drawdown(tensor_np: np.ndarray) -> float:
+def rolling_cumulation(data_ts: torch.tensor, window:int) -> torch.tensor:
+    """the input is a variation(ratio) of something, like returns"""
+    tensor_np = data_ts.cpu().detach().numpy()
+    tensor_df = pd.DataFrame(tensor_np)
+    output_df = (1+tensor_df).rolling(window).apply(np.prod, raw=False) - 1
+    output_np = np.array(output_df)
+    output_ts = torch.tensor(output_np).squeeze()
+    return output_ts
+
+
+def _max_drawdown(tensor_np: np.ndarray) -> float:
     expanding_max = np.maximum.accumulate(tensor_np)
     dd = (tensor_np - expanding_max) / expanding_max
     max_dd = dd.min()
@@ -242,7 +252,7 @@ def max_drawdown(tensor_np: np.ndarray) -> float:
 def rolling_max_drawdown(data_ts: torch.tensor, window: int) -> torch.tensor:
     tensor_np = data_ts.cpu().detach().numpy()
     tensor_df = pd.DataFrame(tensor_np)
-    output_df = tensor_df.rolling(window).apply(max_drawdown, raw=False)
+    output_df = tensor_df.rolling(window).apply(_max_drawdown, raw=False)
     output_np = np.array(output_df)
     output_ts = torch.tensor(output_np).squeeze()
     return output_ts

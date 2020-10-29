@@ -88,6 +88,14 @@ class PctChange(Functor):
     def forward(self, tensor):
         return tsf.pct_change(tensor, period=self._window)
 
+class RollingCumulation(Functor):
+
+    def __init__(self, window=5):
+        self._window = window
+
+    def forward(self, tensor):
+        return tsf.rolling_cumulation(data_ts=tensor, window=self._window)
+
 class RollingMax(Functor):
     
     def __init__(self, window):
@@ -103,6 +111,7 @@ class RollingMaxDrawdown(Functor):
     
     def forward(self, tensor: torch.tensor) -> torch.tensor:
         return tsf.rolling_max_drawdown(data_ts = tensor, window = self._window)
+
 
 
 

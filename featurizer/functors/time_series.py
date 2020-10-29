@@ -112,6 +112,13 @@ class RollingMaxDrawdown(Functor):
     def forward(self, tensor: torch.tensor) -> torch.tensor:
         return tsf.rolling_max_drawdown(data_ts = tensor, window = self._window)
 
+class RollingMaxDrawdownFromReturns(Functor):
+    
+    def __init__(self, window):
+        self._window = window
+    
+    def forward(self, tensor: torch.tensor) -> torch.tensor:
+        return tsf.rolling_max_drawdown_from_returns(data_ts = tensor, window = self._window)
 
 
 

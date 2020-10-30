@@ -261,10 +261,10 @@ def rolling_max_drawdown(data_ts: torch.tensor, window: int) -> torch.tensor:
 
 def rolling_max_drawdown_from_returns(data_ts: torch.tensor, window: int) -> torch.tensor:
     ''' input is returns '''
-    returns = data_ts.cpu().detach().numpy() # returns is np
-    returns = pd.DataFrame(returns) # returns is df
-    price = (1 + returns).cumprod() # price is df
-    output = price.rolling(window).apply(_max_drawdown, raw=False)
-    output = np.array(output) # price is np
-    output = torch.tensor(output).squeeze() # price is tensor
-    return output
+    returns_np = data_ts.cpu().detach().numpy() 
+    returns_df = pd.DataFrame(returns_np) 
+    price = (1 + returns_df).cumprod() 
+    output_df = price.rolling(window).apply(_max_drawdown, raw=False)
+    output_np = np.array(output) 
+    output_ts = torch.tensor(output).squeeze() 
+    return output_ts

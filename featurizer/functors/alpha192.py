@@ -1,7 +1,7 @@
 import torch
+
 from featurizer.functions import time_series_functions as tsf
 from featurizer.interface import Functor
-import featurizer.functions.volume_price as vpf
 
 
 class Alpha001(Functor):
@@ -106,7 +106,7 @@ class Alpha012(Functor):
 
     def forward(self, open_ts, close_ts, vmap_ts, **kwargs):
         output_tensor = (tsf.rank((open_ts - (tsf.rolling_sum_(vmap_ts, 10) / 10)))) * (
-                    -1 * (tsf.rank(abs((close_ts - vmap_ts)))))
+                -1 * (tsf.rank(abs((close_ts - vmap_ts)))))
         return output_tensor
 
 
@@ -177,3 +177,229 @@ class Alpha020(Functor):
 #         output_tensor = REGBETA(tsf.rolling_mean_(close_ts,6),SEQUENCE(6))
 #         return output_tensor
 
+
+# class Alpha025(Functor): # decay_linear
+#
+#     def forword(self):
+#         ((-1 * tsf.rank((tsf.shift(CLOSE, 7) * (1 - tsf.rank(DECAYLINEAR((VOLUME / MEAN(VOLUME, 20)), 9)))))) * (
+#                     1 + RANK(SUM(RET, 250))))
+
+class Alpha026(Functor):
+
+    def forword(self, close_ts, vwap_ts):
+        output_tensor = ((((tsf.rolling_sum_(close_ts, 7) / 7) - close_ts)) + (
+            (tsf.rolling_corr(vwap_ts, tsf.shift(close_ts, 5), 230))))
+        return output_tensor
+
+
+class Alpha029(Functor):
+
+    def forword(self, close_ts, volume_ts):
+        output_tensor = (close_ts - tsf.shift(close_ts, 6)) / tsf.shift(close_ts, 6) * volume_ts
+        return output_tensor
+
+
+class Alpha031(Functor):
+
+    def forword(self, close_ts):
+        output_tensor = (close_ts - tsf.rolling_mean_(close_ts, 12)) / tsf.rolling_mean(close_ts, 12) * 100
+        return output_tensor
+
+
+class Alpha032(Functor):
+
+    def forword(self, high_ts, volume_ts):
+        output_tensor = (
+                -1 * tsf.rolling_sum_(tsf.rank(tsf.rolling_corr(tsf.rank(high_ts), tsf.rank(volume_ts), 3)), 3))
+        return output_tensor
+
+
+class Alpha033(Functor):
+
+    def forword(self, low_ts, return_ts, volume_ts):
+        output_tensor = ((((-1 * tsf.rolling_min(low_ts, 5)) + tsf.rank(tsf.rolling_min(low_ts, 5), 5)) * tsf.rank(
+            ((tsf.rolling_sum_(return_ts, 240) - tsf.rolling_sum_(return_ts, 20)) / 220))) * tsf.rolling_min(volume_ts,
+                                                                                                             5))
+        return output_tensor
+
+
+class Alpha034(Functor):
+    def forword(self, close_ts):
+        output_tensor = tsf.rolling_mean(close_ts, 12) / close_ts
+        return output_tensor
+
+
+class Alpha036(Functor):
+
+    def forword(self, volume_ts, vwap_ts):
+        output_tensor = tsf.rank(tsf.rolling_sum_(tsf.rolling_corr(tsf.rank(volume_ts), tsf.rank(vwap_ts)), 6), 2)
+        return output_tensor
+
+
+class Alpha037(Functor):
+
+    def forword(self, open_ts, return_ts):
+        output_tensor = (-1 * tsf.rank(((tsf.rolling_sum_(open_ts, 5) * tsf.rolling_sum_(return_ts, 5)) - tsf.shift(
+            (tsf.rolling_sum_(open_ts, 5) * tsf.rolling_sum_(return_ts, 5)), 10))))
+        return output_tensor
+
+
+class Alpha038(Functor):
+
+    def forword(self, high_ts):
+        cond = tsf.rolling_mean(high_ts, 20) < high_ts
+        zeros = torch.zeros(high_ts.size())
+        output_tensor = torch.where(cond, (-1 * tsf.diff(high_ts, 2)), zeros)
+        return output_tensor
+
+
+class Alpha040(Functor):
+
+    def forword(self, close_ts, volume_ts):
+        cond1 = close_ts > tsf.shift(close_ts, 1)
+        zeros = torch.zeros(close_ts.size())
+        inner1 = torch.where(cond1, volume_ts, zeros)
+        cond2 = close_ts <= tsf.shift(close_ts, 1)
+        inner2 = tsf.rolling_sum_(torch.where(cond2, volume_ts, zeros), 20)
+        output_tensor = inner1 / inner2
+        return output_tensor
+
+
+class Alpha041(Functor):
+
+    def forword(self, vwap_ts):
+        output_tensor = (tsf.rank(tsf.rolling_max(tsf.diff((vwap_ts), 3), 5)) * -1)
+        return output_tensor
+
+
+class Alpha042(Functor):
+
+    def forword(self, high_ts, volume_ts):
+        output_tensor = ((-1 * tsf.rank(tsf.rolling_std(high_ts, 10))) * tsf.rolling_corr(high_ts, volume_ts, 10))
+        return output_tensor
+
+
+class Alpha043(Functor):
+
+    def forword(self, close_ts, volume_ts):
+        sign = torch.sign(tsf.diff(close_ts, 1))
+        output_tensor = sign * volume_ts
+        return output_tensor
+
+
+class Alpha045(Functor):
+
+    def forword(self, close_ts, open_ts, vwap_ts, volume_ts):
+        output_tensor = (tsf.rank(tsf.diff((((close_ts * 0.6) + (open_ts * 0.4))), 1)) * tsf.rank(
+            tsf.rolling_corr(vwap_ts, tsf.rolling_mean_(volume_ts, 150), 15)))
+        return output_tensor
+
+
+class Alpha046(Functor):
+
+    def forword(self, close_ts):
+        output_tensor = (tsf.rolling_mean_(close_ts, 3) + tsf.rolling_mean_(close_ts, 6) + tsf.rolling_mean_(close_ts,
+                                                                                                             12) + tsf.rolling_mean_(
+            close_ts, 24)) / (4 * close_ts)
+        return output_tensor
+
+
+class Alpha048(Functor):
+
+    def forword(self, close_ts, volume_ts):
+        output_tensor = (-1 * ((tsf.rank(((torch.sign((close_ts - tsf.shift(close_ts, 1))) + torch.sign(
+            (tsf.shift(close_ts, 1) - tsf.shift(close_ts, 2)))) + torch.sign(
+            (tsf.shift(close_ts, 2) - torch.shift(close_ts, 3)))))) * tsf.rolling_sum_(volume_ts,
+                                                                                       5)) / tsf.rolling_sum_(volume_ts,
+                                                                                                              20))
+        return output_tensor
+
+
+class Alpha049(Functor):
+
+    def forword(self, high_ts, low_ts):
+        output_tensor = torch.max(tsf.diff(high_ts, 1), tsf.diff(low_ts, 1))
+        return output_tensor
+
+
+# class Alpha050(Functor):  #formula bug
+#
+#     def forword(self,high_ts,low_ts):
+#         zeros=torch.zeros(high_ts.size())
+#         cond1=(high_ts+low_ts)<=tsf.shift(high_ts,1)+tsf.shift(low_ts,1)
+#         inner1=tsf.rolling_sum_(torch.where(cond1,zeros,torch.max(torch.abs(high_ts-tsf.shift(high_ts,1)),torch.abs(low_ts-tsf.shift(low_ts,1)))),12)
+#         inner2=tsf.rolling_sum_(torch.where(cond1,zeros,torch.max(torch.abs(high_ts-tsf.shift(high_ts,1)),torch.abs(low_ts-tsf.shift(low_ts,1)))),12)
+#         inner2=(SUM(((HIGH+LOW)<=(DELAY(HIGH,1)+DELAY(LOW,1))?0:MAX(ABS(HIGH-DELAY(HIGH,1)),ABS(L OW-DELAY(LOW,1)))),12)
+#         inner3=SUM(((HIGH+LOW)>=(DELAY(HIGH,1)+DELAY(LOW,1))?0:MAX(ABS(HIGH-DELAY(HI GH,1)),ABS(LOW-DELAY(LOW,1)))),12))
+#         inner4=+SUM(((HIGH+LOW)<=(DELAY(HIGH,1)+DELA Y(LOW,1))?0:MAX(ABS(HIGH-DELAY(HIGH,1)),ABS(LOW-DELAY(LOW,1)))),12))
+#         output_tensor=inner1/inner2+inner3-inner4
+#         output_tensor=torch.max(tsf.diff(high_ts,1),tsf.diff(low_ts,1))
+#         return output_tensor
+
+
+# class Alpha052(Functor):  #formula bug:what is L
+#
+#     def forword(self,high_ts,low_ts,close_ts):
+#         output_tensor=tsf.rolling_sum_(MAX(0,high_ts-tsf.shift((high_ts+low_ts+close_ts)/3,1)),26)/tsf.rolling_sum_(MAX(0,tsf.shift((high_ts+low_ts+close_ts)/3,1)-L),26)*100
+#         return output_tensor
+
+
+class Alpha054(Functor):
+
+    def forword(self, close_ts, open_ts):
+        output_tensor = (-1 * tsf.rank(
+            (tsf.rolling_std(torch.abs(close_ts - open_ts)) + (close_ts - open_ts)) + tsf.rolling_corr(close_ts,
+                                                                                                       open_ts, 10)))
+        return output_tensor
+
+
+class Alpha055(Functor):
+
+    def forword(self, close_ts, open_ts, high_ts, low_ts):
+        inner1 = tsf.rolling_sum_(16 * (
+                close_ts - tsf.shift(close_ts, 1) + (close_ts - open_ts) / 2 + tsf.shift(close_ts, 1) - tsf.shift(
+            open_ts, 1)))
+        cond1 = (torch.abs(high_ts - tsf.shift(close_ts, 1)) > torch.abs(low_ts - tsf.shift(close_ts, 1))) & (
+                torch.abs(high_ts - tsf.shift(close_ts, 1)) > torch.abs(high_ts - tsf.shift(low_ts, 1)))
+        sequence1 = torch.abs(high_ts - tsf.shift(close_ts, 1)) + torch.abs(
+            low_ts - tsf.shift(close_ts, 1)) / 2 + torch.abs(tsf.shift(close_ts, 1) - tsf.shift(open_ts, 1)) / 4
+        cond2 = (torch.abs(low_ts - tsf.shift(close_ts, 1)) > torch.abs(high_ts - tsf.shift(low_ts, 1))) & (
+                torch.abs(low_ts - tsf.shift(close_ts, 1)) > torch.abs(high_ts - tsf.shift(close_ts, 1)))
+        sequence2 = torch.abs(high_ts - tsf.shift(low_ts, 1)) + torch.abs(
+            tsf.shift(close_ts, 1) - tsf.shift(open_ts, 1)) / 4
+        inner2 = torch.where([~cond1 & ~cond2], sequence2, sequence1)
+        output_tensor = inner1 / inner2
+        return output_tensor
+
+
+class Alpha056(Functor):
+
+    def forword(self, open_ts, high_ts,low_ts,volume_ts):
+        output_tensor = (tsf.rank((open_ts	-	tsf.rolling_min(open_ts,	12)))	<	tsf.rank(tsf.rank(tsf.rolling_corr(tsf.rolling_sum_(((high_ts	+	low_ts)/2),19),tsf.rolling_sum_(tsf.rolling_mean_(volume_ts,40), 19), 13))^5))
+        return output_tensor
+
+
+class Alpha059(Functor):
+
+    def forword(self, close_ts,low_ts,high_ts):
+        cond1= tsf.diff(close_ts,1)>0
+        zeros=torch.zeros(close_ts.size())
+        inner=torch.where(cond1,torch.min(low_ts, tsf.shift(close_ts, 1)),torch.max(high_ts, tsf.shift(close_ts,1)))
+        cond2=tsf.diff(close_ts,1)==0
+        inner=torch.where(cond2,zeros,inner)
+        output_tensor=tsf.rolling_sum_(inner,20)
+        return output_tensor
+
+
+class Alpha049(Functor):
+
+    def forword(self, high_ts, low_ts):
+        output_tensor = torch.max(tsf.diff(high_ts, 1), tsf.diff(low_ts, 1))
+        return output_tensor
+
+
+class Alpha049(Functor):
+
+    def forword(self, high_ts, low_ts):
+        output_tensor = torch.max(tsf.diff(high_ts, 1), tsf.diff(low_ts, 1))
+        return output_tensor

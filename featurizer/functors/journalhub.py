@@ -75,8 +75,8 @@ class AmihudRatio(Functor):
         #pdb.set_trace()
         return tsf.rolling_mean_(output, window=self._window)
 
-
-
+    
+    
 class ResidualRollingMean(Functor):
     """Idiosyncratic (returns) mean"""
 
@@ -91,6 +91,22 @@ class ResidualRollingMean(Functor):
         residual = calc_residual3d(tensor_x, tensor_y, window_train=self._window_train, window_test=self._window_test, keep_first_train_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         return tsf.rolling_mean(residual, self._window)
+    
+    
+    
+class ResidualRollingWeightedMean(Functor):
+    """Idiosyncratic (returns) mean"""
+
+    def __init__(self, window=3, halflife=90):
+        self._window = window
+        self._halflife = halflife
+        
+    def forward(self, tensor_x, tensor_y):
+        if tensor_x.dim() < tensor_y.dim():
+            tensor_x = tensor_x.expand_as(tensor_y)
+        residual = calc_residual3d(tensor_x, tensor_y, window_train=self._window_train, window_test=self._window_test, keep_first_train_nan=True)
+        residual = residual.squeeze(-1).transpose(0,1)
+        return tsf.rolling_weighted_mean(residual, window= self._window, halflife= self.halflife)
 
 
 

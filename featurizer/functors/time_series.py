@@ -58,10 +58,10 @@ class RollingDownsideStd(Functor):
     
     def __init__(self, window, benchmark):
         self._window = window
-        self.benchmark = benchmark
+        self._benchmark = benchmark
     
     def forward(self, tensor):
-        return tsf.rolling_downside_std(tensor, window=self._window, tensor_benchmark=self.benchmark)
+        return tsf.rolling_downside_std(tensor, window=self._window, tensor_benchmark=self._benchmark)
 
 class RollingMeanScaledByStd(Functor):
     

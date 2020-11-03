@@ -108,7 +108,7 @@ class ResidualRollingWeightedMean(Functor):
             tensor_x = tensor_x.expand_as(tensor_y)
         residual = calc_residual3d(tensor_x, tensor_y, window_train=self._window_train, window_test=self._window_test, keep_first_train_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
-        return tsf.rolling_weighted_mean(residual, window= self._window, halflife= self.halflife)
+        return tsf.rolling_weighted_mean(residual, window= self._window, halflife= self._halflife)
 
 
 
@@ -132,7 +132,7 @@ class ResidualRollingWeightedStd(Functor):
     """Idiosyncratic (returns) weighted STD"""
 
     def __init__(self, window_train=10, window_test=3, window=3, halflife= 90):
-        self._window = window
+        self._window_train = window_train
         self._window_test = window_test
         self._window = window
         self._halflife = halflife
@@ -142,14 +142,14 @@ class ResidualRollingWeightedStd(Functor):
             tensor_x = tensor_x.expand_as(tensor_y)
         residual = calc_residual3d(tensor_x, tensor_y, window_train=self._window_train, window_test=self._window_test, keep_first_train_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
-        return tsf.rolling_weighted_std(residual, window= self._window, halflife= halflife)
+        return tsf.rolling_weighted_std(residual, window= self._window, halflife= self._halflife)
     
     
 class ResidualRollingDownsideStd(Functor):
     """Idiosyncratic (returns) downside STD"""
 
     def __init__(self, benchmark, window_train=10, window_test=3, window=3):
-        self._window = window
+        self._window_train = window_train
         self._window_test = window_test
         self._window = window
         self._benchmark = benchmark
@@ -159,7 +159,7 @@ class ResidualRollingDownsideStd(Functor):
             tensor_x = tensor_x.expand_as(tensor_y)
         residual = calc_residual3d(tensor_x, tensor_y, window_train=self._window_train, window_test=self._window_test, keep_first_train_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
-        return tsf.rolling_downside_std(residual, window= self._window, benchmark= self.benchmark)
+        return tsf.rolling_downside_std(residual, window= self._window, tensor_benchmark= self._benchmark)
 
 
 class ResidualRollingSkew(Functor):

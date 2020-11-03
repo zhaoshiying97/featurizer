@@ -1,5 +1,4 @@
 import torch
-
 from featurizer.functions import time_series_functions as tsf
 from featurizer.interface import Functor
 

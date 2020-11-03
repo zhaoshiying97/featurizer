@@ -190,6 +190,7 @@ class ResidualRollingKurt(Functor):
         residual = calc_residual3d(tensor_x, tensor_y, window_train=self._window_train, window_test=self._window_test, keep_first_train_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         return tsf.rolling_kurt(residual, self._window)
+    
 
 class ResidualRollingCumulation(Functor):
     
@@ -204,6 +205,27 @@ class ResidualRollingCumulation(Functor):
         residual = calc_residual3d(tensor_x, tensor_y, window_train=self._window_train, window_test=self._window_test, keep_first_train_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         return tsf.rolling_cumulation(data_ts=residual, window=self._window)
+
+
+class ResidualRollingVARMOM(Functor):
+    ''' 
+    input is residual returns 
+    VARMOM is volitility adjusted momentum; in other words, it's a Sharp Ratio for residuals with 0 degree of freedom
+    '''
+    
+    def __init__(self, window_train=10, window_test=3, window=3):
+        self._window_train = window_train
+        self._window_test = window_test
+        self._window = window
+        
+    def forward(self, tensor_x, tensor_y):
+        if tensor_x.dim() < tensor_y.dim():
+            tensor_x = tensor_x.expand_as(tensor_y)
+        residual = calc_residual3d(tensor_x, tensor_y, window_train=self._window_train, window_test=self._window_test, keep_first_train_nan=True)
+        residual = residual.squeeze(-1).transpose(0,1)
+        varmom = tsf.rolling_mean_(residual, window=self._window) / tsf.rolling_std_0dof(residual, window=self._window)
+        return varmom
+    
     
     
 class ResidualRollingMaxDrawdownFromReturns(Functor):

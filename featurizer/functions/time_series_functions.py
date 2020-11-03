@@ -109,6 +109,13 @@ def rolling_std(tensor, window):
     output_tensor = torch.tensor(output_df.values, dtype=tensor.dtype, device=tensor.device)
     return output_tensor
 
+def rolling_std_0dof(tensor, window):
+    tensor_np = tensor.cpu().detach().numpy()
+    tensor_df = pd.DataFrame(tensor_np)
+    output_df = tensor_df.rolling(window).std(ddof=0)
+    output_tensor = torch.tensor(output_df.values, dtype=tensor.dtype, device=tensor.device)
+    return output_tensor
+
 def rolling_weighted_std(tensor, window, halflife=90):
     tensor_np = tensor.cpu().detach().numpy()
     tensor_df = pd.DataFrame(tensor_np)
@@ -241,6 +248,7 @@ def rolling_cumulation(data_ts: torch.tensor, window:int) -> torch.tensor:
     output_np = np.array(output_df)
     output_ts = torch.tensor(output_np).squeeze()
     return output_ts
+
 
 
 def _max_drawdown(tensor_np: np.ndarray) -> float:

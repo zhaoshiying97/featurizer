@@ -193,6 +193,14 @@ def rolling_max(tensor, window):
     output_tensor = torch.tensor(output_df.values, dtype=tensor.dtype, device=tensor.device)
     return output_tensor
 
+
+def rolling_median(tensor, window):
+    tensor_np = tensor.cpu().detach().numpy()
+    tensor_df = pd.DataFrame(tensor_np)
+    output_df = tensor_df.rolling(window).median()
+    output_tensor = torch.tensor(output_df.values, dtype=tensor.dtype, device=tensor.device)
+    return output_tensor
+
 def rolling_rank(np_data):
     return rankdata(np_data)[-1]
 

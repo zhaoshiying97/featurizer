@@ -148,18 +148,22 @@ class ResidualRollingWeightedStd(Functor):
 class ResidualRollingDownsideStd(Functor):
     """Idiosyncratic (returns) downside STD"""
 
-    def __init__(self, benchmark, window_train=10, window_test=3, window=3):
+    def __init__(self, benchmark=0, window_train=10, window_test=3, window=3):
         self._window_train = window_train
         self._window_test = window_test
         self._window = window
         self._benchmark = benchmark
         
     def forward(self, tensor_x, tensor_y):
+        import torch
         if tensor_x.dim() < tensor_y.dim():
             tensor_x = tensor_x.expand_as(tensor_y)
         residual = calc_residual3d(tensor_x, tensor_y, window_train=self._window_train, window_test=self._window_test, keep_first_train_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
-        return tsf.rolling_downside_std(residual, window= self._window, tensor_benchmark= self._benchmark)
+        benchmark_tensor = torch.zeros(self._window)
+        benchmark_tensor = benchmark_tensor.fill_(self._benchmark)
+        return tsf.rolling_downside_std(residual, window= self._window, tensor_benchmark= benchmark_tensor)
+    
 
 
 class ResidualRollingSkew(Functor):

@@ -274,7 +274,7 @@ class ResidualRollingVARMOM(Functor):
             tensor_x = tensor_x.expand_as(tensor_y)
         residual = calc_residual3d(tensor_x, tensor_y, window_train=self._window_train, window_test=self._window_test, keep_first_train_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
-        varmom = tsf.rolling_mean_(residual, window=self._window) / tsf.rolling_std_0dof(residual, window=self._window)
+        varmom = tsf.rolling_mean_(residual, window=self._window) / tsf.rolling_std_dof_0(residual, window=self._window)
         return varmom
     
     

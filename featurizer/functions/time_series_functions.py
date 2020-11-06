@@ -109,7 +109,7 @@ def rolling_std(tensor, window):
     output_tensor = torch.tensor(output_df.values, dtype=tensor.dtype, device=tensor.device)
     return output_tensor
 
-def rolling_std_0dof(tensor, window):
+def rolling_std_dof_0(tensor, window): # dof: degree of freedom
     tensor_np = tensor.cpu().detach().numpy()
     tensor_df = pd.DataFrame(tensor_np)
     output_df = tensor_df.rolling(window).std(ddof=0)

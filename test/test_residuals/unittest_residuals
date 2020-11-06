@@ -16,15 +16,59 @@ all_tensors = torch.load('tensors_db.pt')
 x_ts = all_tensors['x_ts']
 y_ts = all_tensors['y_ts']
 window_train, window_test, window = 30, 20, 10
+'''
+t = {'x_ts': x_ts, 'y_ts': y_ts,
+     'ResidualRollingMeanFactor': ResidualRollingMeanFactor, 
+     'ResidualRollingWeightedMeanFactor': ResidualRollingWeightedMeanFactor,
+     'ResidualRollingStdFactor': ResidualRollingStdFactor, 
+     'ResidualRollingWeightedStdFactor': ResidualRollingWeightedStdFactor,
+     'ResidualRollingDownsideStdFactor': ResidualRollingDownsideStdFactor,
+     'ResidualRollingMaxFactor': ResidualRollingMaxFactor, 
+     'ResidualRollingMinFactor': ResidualRollingMinFactor,
+     'ResidualRollingMedianFactor': ResidualRollingMedianFactor,
+     'ResidualRollingSkewFactor': ResidualRollingSkewFactor,
+     'ResidualRollingKurtFactor': ResidualRollingKurtFactor,
+     'ResidualRollingCumulationFactor': ResidualRollingCumulationFactor,
+     'ResidualRollingVARMOMFactor': ResidualRollingVARMOMFactor,
+     'ResidualRollingMaxDrawdownFromReturnsFactor': ResidualRollingMaxDrawdownFromReturnsFactor
+     }'''
 
 class TestResidualRollingMean(unittest.TestCase):
     
-    expected_output = all_tensors['ResidualRollingMeanFeature']
+    expected_output = all_tensors['ResidualRollingMeanFactor']
     ResidualRollingMeanFunctor = ResidualRollingMean(window_train, window_test, window)
     
     def test_forward(self):
         self.assertTrue(torch.allclose(self.ResidualRollingMeanFunctor.forward(x_ts, y_ts), self.expected_output, equal_nan=True))
         
+        
+class TestResidualRollingWeightedMean(unittest.TestCase):
+    
+    expected_output = all_tensors['ResidualRollingWeightedMeanFactor']
+    ResidualRollingWeightedMeanFunctor = ResidualRollingWeightedMean(window_train, window_test, window)
+    
+    def test_forward(self):
+        self.assertTrue(torch.allclose(self.ResidualRollingWeightedMeanFunctor.forward(x_ts, y_ts), self.expected_output, equal_nan=True))
+
+
+class TestResidualRollingStd(unittest.TestCase):
+    
+    expected_output = all_tensors['ResidualRollingStdFactor']
+    ResidualRollingStdFunctor = ResidualRollingStd(window_train, window_test, window)
+    
+    def test_forward(self):
+        self.assertTrue(torch.allclose(self.ResidualRollingStdFunctor.forward(x_ts, y_ts), self.expected_output, equal_nan=True))
+        
+        
+class TestResidualRollingWeightedStd(unittest.TestCase):
+    
+    expected_output = all_tensors['ResidualRollingWeightedStdFactor']
+    ResidualRollingWeightedStdFunctor = ResidualRollingWeightedStd(window_train, window_test, window)
+    
+    def test_forward(self):
+        self.assertTrue(torch.allclose(self.ResidualRollingWeightedStdFunctor.forward(x_ts, y_ts), self.expected_output, equal_nan=True))
+        
+
 
 if __name__ =='__main__':
     unittest.main()

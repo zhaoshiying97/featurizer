@@ -72,9 +72,59 @@ for i in range(0, list(stocks_returns_ts.size())[1] - 1):
     index_returns_ts = torch.cat((index_returns_ts, index_returns_ts_temp), 1)
     
 stock_turnover_pct_ts = pct_change_functor(stocks_turnover_ts)
-
 stock_high_low_ratio_ts = torch.div(stocks_high_ts, stocks_low_ts)
-# --- stack and permute tensors
+
 x_ts = torch.stack([stock_turnover_pct_ts, stock_high_low_ratio_ts, index_returns_ts])
 x_ts = x_ts.permute(2,1,0)
 y_ts = stocks_returns_ts.unsqueeze(-1).permute(1,0,2)
+
+
+################## get expected output tensors
+ResidualRollingMeanFunctor = jf.ResidualRollingMean(window_train=30, window_test=20, window=10)
+ResidualRollingMeanFeature = ResidualRollingMeanFunctor.forward(x_ts, y_ts)
+
+ResidualRollingWeightedMeanFunctor = jf.ResidualRollingWeightedMean(window_train=30, window_test=20, window=10)
+ResidualRollingWeightedMeanFeature = ResidualRollingWeightedMeanFunctor.forward(x_ts, y_ts)
+
+ResidualRollingStdFunctor = jf.ResidualRollingStd(window_train=30, window_test=20, window=10)
+ResidualRollingStdFeature = ResidualRollingStdFunctor.forward(x_ts, y_ts)
+
+ResidualRollingWeightedStdFunctor = jf.ResidualRollingWeightedStd(window_train=30, window_test=20, window=10)
+ResidualRollingWeightedStdFeature = ResidualRollingWeightedStdFunctor.forward(x_ts, y_ts)
+
+ResidualRollingDownsideStdFunctor = jf.ResidualRollingDownsideStd(window_train=30, window_test=20, window=10)
+ResidualRollingDownsideStdFeature = ResidualRollingDownsideStdFunctor.forward(x_ts, y_ts)
+
+ResidualRollingMaxFunctor = jf.ResidualRollingMax(window_train=30, window_test=20, window=10)
+ResidualRollingMaxFeature = ResidualRollingMaxFunctor.forward(x_ts, y_ts)
+
+ResidualRollingMinFunctor = jf.ResidualRollingMin(window_train=30, window_test=20, window=10)
+ResidualRollingMinFeature = ResidualRollingMinFunctor.forward(x_ts, y_ts)
+
+ResidualRollingMedianFunctor = jf.ResidualRollingMedian(window_train=30, window_test=20, window=10)
+ResidualRollingMedianFeature = ResidualRollingMedianFunctor.forward(x_ts, y_ts)
+
+ResidualRollingSkewFunctor = jf.ResidualRollingSkew(window_train=30, window_test=20, window=10)
+ResidualRollingSkewFeature = ResidualRollingSkewFunctor.forward(x_ts, y_ts)
+
+ResidualRollingKurtFunctor = jf.ResidualRollingKurt(window_train=30, window_test=20, window=10)
+ResidualRollingKurtFeature = ResidualRollingKurtFunctor.forward(x_ts, y_ts)
+
+ResidualRollingCumulationFunctor = jf.ResidualRollingCumulation(window_train=30, window_test=20, window=10)
+ResidualRollingCumulationFeature = ResidualRollingCumulationFunctor.forward(x_ts, y_ts)
+
+ResidualRollingVARMOMFunctor = jf.ResidualRollingVARMOM(window_train=30, window_test=20, window=10)
+ResidualRollingVARMOMFeature = ResidualRollingVARMOMFunctor.forward(x_ts, y_ts)
+
+ResidualRollingMaxDrawdownFromReturnsFunctor = jf.ResidualRollingMaxDrawdownFromReturns(window_train=30, window_test=20, window=10)
+ResidualRollingMaxDrawdownFromReturnsFeature = ResidualRollingMaxDrawdownFromReturnsFunctor.forward(x_ts, y_ts)
+
+
+
+
+
+
+
+
+
+

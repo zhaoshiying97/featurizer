@@ -19,7 +19,7 @@ import pandas as pd
 import pickle
 import torch
 
-############### get stocks and index dataframes from jointquant, then store to pickle
+############### get stocks and index dataframes from jointquant, then store to pickle #########
 from jqdatasdk import *
 auth('17727977512', '147258369')
 
@@ -43,7 +43,7 @@ stocks_100d.to_pickle('stocks_100d.pkl')
 index_100d.to_pickle('index_100d.pkl')
 
 
-############## get input x and y tensors
+############## get input x and y tensors #############
 import featurizer.functors.journalhub as jf
 import get_securities_fields_tensors as gt
 import featurizer.functors.time_series as tf
@@ -79,7 +79,7 @@ x_ts = x_ts.permute(2,1,0)
 y_ts = stocks_returns_ts.unsqueeze(-1).permute(1,0,2)
 
 
-################## get expected output tensors
+################## get expected output tensors ########
 ResidualRollingMeanFunctor = jf.ResidualRollingMean(window_train=30, window_test=20, window=10)
 ResidualRollingMeanFeature = ResidualRollingMeanFunctor.forward(x_ts, y_ts)
 
@@ -119,6 +119,24 @@ ResidualRollingVARMOMFeature = ResidualRollingVARMOMFunctor.forward(x_ts, y_ts)
 ResidualRollingMaxDrawdownFromReturnsFunctor = jf.ResidualRollingMaxDrawdownFromReturns(window_train=30, window_test=20, window=10)
 ResidualRollingMaxDrawdownFromReturnsFeature = ResidualRollingMaxDrawdownFromReturnsFunctor.forward(x_ts, y_ts)
 
+
+################### Store all tensors #########
+
+t = {'x_ts': x_ts, 'y_ts': y_ts,
+     'ResidualRollingMeanFeature': ResidualRollingMeanFeature, 
+     'ResidualRollingWeightedMeanFeature': ResidualRollingWeightedMeanFeature,
+     'ResidualRollingStdFeature': ResidualRollingStdFeature, 
+     'ResidualRollingWeightedStdFeature': ResidualRollingWeightedStdFeature,
+     'ResidualRollingDownsideStdFeature': ResidualRollingDownsideStdFeature,
+     'ResidualRollingMaxFeature': ResidualRollingMaxFeature, 
+     'ResidualRollingMinFeature': ResidualRollingMinFeature,
+     'ResidualRollingMedianFeature': ResidualRollingMedianFeature,
+     'ResidualRollingSkewFeature': ResidualRollingSkewFeature,
+     'ResidualRollingKurtFeature': ResidualRollingKurtFeature,
+     'ResidualRollingCumulationFeature': ResidualRollingCumulationFeature,
+     'ResidualRollingVARMOMFeature': ResidualRollingVARMOMFeature,
+     'ResidualRollingMaxDrawdownFromReturnsFeature': ResidualRollingMaxDrawdownFromReturnsFeature
+     }
 
 
 

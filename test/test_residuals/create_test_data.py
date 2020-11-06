@@ -138,7 +138,7 @@ t = {'x_ts': x_ts, 'y_ts': y_ts,
      'ResidualRollingMaxDrawdownFromReturnsFeature': ResidualRollingMaxDrawdownFromReturnsFeature
      }
 
-
+torch.save(t, 'tensors_db.pt')
 
 
 

@@ -7,6 +7,24 @@ Created on Fri Nov  6 10:13:06 2020
 """
 
 import unittest
+import torch
 from featurizer.functors.journalhub import *
 
 
+# get tensors needed for the test cases
+all_tensors = torch.load('tensors_db.pt') 
+x_ts = all_tensors['x_ts']
+y_ts = all_tensors['y_ts']
+window_train, window_test, window = 30, 20, 10
+
+class TestResidualRollingMean(unittest.TestCase):
+    
+    expected_output = all_tensors['ResidualRollingMeanFeature']
+    ResidualRollingMeanFunctor = ResidualRollingMean(window_train, window_test, window)
+    
+    def test_forward(self):
+        self.assertTrue(torch.allclose(self.ResidualRollingMeanFunctor.forward(x_ts, y_ts), self.expected_output, equal_nan=True))
+        
+
+if __name__ =='__main__':
+    unittest.main()

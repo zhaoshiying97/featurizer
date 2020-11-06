@@ -39,9 +39,6 @@ index_100d.index.rename(['order_book_id','datetime'], inplace=True)
 index_100d.rename(columns= {'money': 'total_turnover'}, inplace=True)
 index_100d = index_100d.groupby(by="order_book_id").apply(lambda x:x.fillna(method="ffill"))
 
-stocks_100d.to_pickle('stocks_100d.pkl')
-index_100d.to_pickle('index_100d.pkl')
-
 
 ############## get input x and y tensors #############
 import featurizer.functors.journalhub as jf

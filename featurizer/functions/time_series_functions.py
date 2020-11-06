@@ -193,7 +193,6 @@ def rolling_max(tensor, window):
     output_tensor = torch.tensor(output_df.values, dtype=tensor.dtype, device=tensor.device)
     return output_tensor
 
-
 def rolling_median(tensor, window):
     tensor_np = tensor.cpu().detach().numpy()
     tensor_df = pd.DataFrame(tensor_np)
@@ -203,7 +202,6 @@ def rolling_median(tensor, window):
 
 def rolling_rank(np_data):
     return rankdata(np_data)[-1]
-
 
 def ts_rank(data_ts, window=10):
     data_df=pd.DataFrame(data_ts)
@@ -256,8 +254,6 @@ def rolling_cumulation(data_ts: torch.tensor, window:int) -> torch.tensor:
     output_np = np.array(output_df)
     output_ts = torch.tensor(output_np).squeeze()
     return output_ts
-
-
 
 def _max_drawdown(tensor_np: np.ndarray) -> float:
     ''' input is price '''

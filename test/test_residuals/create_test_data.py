@@ -19,85 +19,89 @@ import pandas as pd
 import pickle
 import torch
 import numpy as np
-import get_securities_fields_tensors as gs
+
+all_tensors = torch.load('tensors_db.pt') 
+x_ts = all_tensors['x_ts']
+y_ts = all_tensors['y_ts']
+
+y = torch.ones(20)
+y = y.unsqueeze(-2)
+y = y.unsqueeze(-2)
+y = y.permute(1,2,0)
+
+x = torch.ones(20)
+x = x.unsqueeze(-2)
+x = torch.stack([x,x])
+x = x.permute(1,2,0)
+
+err = [0.1, -0.1, 0.2, -0.2, 0.1, -0.1, 0.2, -0.2, 0.1, -0.1,
+       0.2, -0.2, 0.1, -0.1, 0.2, -0.2, 0.1, -0.1, 0.2, -0.2]
+err = torch.tensor(err)
+err = err.unsqueeze(-2)
+err = err.unsqueeze(-2)
+err = err.permute(1,2,0)
+
+y = y + err
+
+from featurizer.functors.journalhub import *
+res_rtn_roll_std_30_20_5 = ResidualRollingStd(window_train=10, window_test=5, window=3)
+res_rtn_std_fct = res_rtn_roll_std_30_20_5(tensor_x= x, tensor_y= y)
 
 
-########################### create mock x and y dataframes #####################
+# ########################### create mock x and y dataframes #####################
 
-num_days = 20
-datetime = pd.date_range(start= '2020-10-01', periods= num_days, freq= 'D')
-datetime_stocks = datetime.append(datetime)
-datetime_index = datetime
+# num_days = 20
+# datetime = pd.date_range(start= '2020-10-01', periods= num_days, freq= 'D')
+# datetime_stocks = datetime.append(datetime)
+# datetime_index = datetime
 
-stocks = ['000001.XSHE', '000002.XSHE'] * num_days
-stocks.sort()
+# stocks = ['000001.XSHE', '000002.XSHE'] * num_days
+# stocks.sort()
 
-index = ['399006.XSHE'] * num_days
+# index = ['399006.XSHE'] * num_days
 
-close_stock1 = np.random.uniform(low= 10, high= 11, size= num_days)
-close_stock2 = np.random.uniform(low= 20, high= 21, size= num_days)
-close_stocks = np.hstack((close_stock1, close_stock2)).round(decimals= 2)
-close_index = np.random.uniform(low= 50, high= 51, size= num_days)
+# close_stock1 = np.random.uniform(low= 10, high= 11, size= num_days)
+# close_stock2 = np.random.uniform(low= 20, high= 21, size= num_days)
+# close_stocks = np.hstack((close_stock1, close_stock2)).round(decimals= 2)
+# close_index = np.random.uniform(low= 50, high= 51, size= num_days)
 
-volume_stock1 = np.random.uniform(low= 100, high= 150, size= num_days)
-volume_stock2 = np.random.uniform(low= 1000, high= 1500, size= num_days)
-volume_stocks = np.hstack((volume_stock1, volume_stock2)).round(decimals= 2)
-volume_index = np.random.uniform(low= 2000, high= 2500, size= num_days)
+# volume_stock1 = np.random.uniform(low= 100, high= 150, size= num_days)
+# volume_stock2 = np.random.uniform(low= 1000, high= 1500, size= num_days)
+# volume_stocks = np.hstack((volume_stock1, volume_stock2)).round(decimals= 2)
+# volume_index = np.random.uniform(low= 2000, high= 2500, size= num_days)
 
-turnover_stock1 = close_stock1 * volume_stock1
-turnover_stock2 = close_stock2 * volume_stock2
-turnover_stocks = np.hstack((turnover_stock1, turnover_stock2)).round(decimals= 2)
-turnover_index = close_index * volume_index
+# turnover_stock1 = close_stock1 * volume_stock1
+# turnover_stock2 = close_stock2 * volume_stock2
+# turnover_stocks = np.hstack((turnover_stock1, turnover_stock2)).round(decimals= 2)
+# turnover_index = close_index * volume_index
 
-high_stock1 = np.random.uniform(low= 11, high= 12, size= num_days)
-high_stock2 = np.random.uniform(low= 21, high= 22, size= num_days)
-high_stocks = np.hstack((high_stock1, high_stock2)).round(decimals= 2)
-high_index = np.random.uniform(low= 51, high= 52, size= num_days)
+# high_stock1 = np.random.uniform(low= 11, high= 12, size= num_days)
+# high_stock2 = np.random.uniform(low= 21, high= 22, size= num_days)
+# high_stocks = np.hstack((high_stock1, high_stock2)).round(decimals= 2)
+# high_index = np.random.uniform(low= 51, high= 52, size= num_days)
 
-low_stock1 = np.random.uniform(low= 9, high= 10, size= num_days)
-low_stock2 = np.random.uniform(low= 19, high= 20, size= num_days)
-low_stocks = np.hstack((low_stock1, low_stock2)).round(decimals= 2)
-low_index = np.random.uniform(low= 49, high= 50, size= num_days)
+# low_stock1 = np.random.uniform(low= 9, high= 10, size= num_days)
+# low_stock2 = np.random.uniform(low= 19, high= 20, size= num_days)
+# low_stocks = np.hstack((low_stock1, low_stock2)).round(decimals= 2)
+# low_index = np.random.uniform(low= 49, high= 50, size= num_days)
 
-open_stock1 = np.random.uniform(low= 10, high= 11, size= num_days)
-open_stock2 = np.random.uniform(low= 20, high= 21, size= num_days)
-open_stocks = np.hstack((open_stock1, open_stock2)).round(decimals= 2)
-open_index = np.random.uniform(low= 50, high= 51, size= num_days)
+# open_stock1 = np.random.uniform(low= 10, high= 11, size= num_days)
+# open_stock2 = np.random.uniform(low= 20, high= 21, size= num_days)
+# open_stocks = np.hstack((open_stock1, open_stock2)).round(decimals= 2)
+# open_index = np.random.uniform(low= 50, high= 51, size= num_days)
 
-df_stocks = pd.DataFrame({'order_book_id': stocks, 'datetime': datetime_stocks, 
-                          'open': open_stocks, 'high': high_stocks,
-                          'low': low_stocks, 'close': close_stocks,  
-                          'volume': volume_stocks, 'total_turnover': turnover_stocks})
-df_stocks.set_index(["order_book_id", "datetime"], inplace=True)
+# df_stocks = pd.DataFrame({'order_book_id': stocks, 'datetime': datetime_stocks, 
+#                           'open': open_stocks, 'high': high_stocks,
+#                           'low': low_stocks, 'close': close_stocks,  
+#                           'volume': volume_stocks, 'total_turnover': turnover_stocks})
+# df_stocks.set_index(["order_book_id", "datetime"], inplace=True)
                           
-df_index = pd.DataFrame({'order_book_id': index, 'datetime': datetime, 
-                          'open': open_index, 'high': high_index,
-                          'low': low_index, 'close': close_index,  
-                          'volume': volume_index, 'total_turnover': turnover_index})
-df_index.set_index(["order_book_id", "datetime"], inplace=True)
+# df_index = pd.DataFrame({'order_book_id': index, 'datetime': datetime, 
+#                           'open': open_index, 'high': high_index,
+#                           'low': low_index, 'close': close_index,  
+#                           'volume': volume_index, 'total_turnover': turnover_index})
+# df_index.set_index(["order_book_id", "datetime"], inplace=True)
 
-
-
-
-# ############### get stocks and index dataframes from jointquant, then store to pickle #########
-# from jqdatasdk import *
-# auth('17727977512', '147258369')
-
-# stocks = ['000001.XSHE', '000002.XSHE']
-# index = ['399006.XSHE']
-# fields=['date','open','high','low','close','volume','money']
-
-# stocks_100d = get_bars(stocks, fields= fields, unit= '1d', end_dt="2020-11-06", count=100)
-# stocks_100d = stocks_100d.reset_index(level=1, drop=True).set_index("date", append=True)
-# stocks_100d.index.rename(['order_book_id','datetime'], inplace=True)
-# stocks_100d.rename(columns= {'money': 'total_turnover'}, inplace=True)
-# stocks_100d = stocks_100d.groupby(by="order_book_id").apply(lambda x:x.fillna(method="ffill"))
-
-# index_100d = get_bars(index, fields= fields, unit= '1d', end_dt="2020-11-06", count=100)
-# index_100d = index_100d.reset_index(level=1, drop=True).set_index("date", append=True)
-# index_100d.index.rename(['order_book_id','datetime'], inplace=True)
-# index_100d.rename(columns= {'money': 'total_turnover'}, inplace=True)
-# index_100d = index_100d.groupby(by="order_book_id").apply(lambda x:x.fillna(method="ffill"))
 
 
 # ############## get input x and y tensors #############
@@ -108,8 +112,8 @@ df_index.set_index(["order_book_id", "datetime"], inplace=True)
 # use_cuda = torch.cuda.is_available()
 # device = torch.device('cuda' if use_cuda else 'cpu')
 
-# dict_index = gt.get_securities_fields_tensors(index_100d)
-# dict_stocks = gt.get_securities_fields_tensors(stocks_100d)
+# dict_index = gt.get_securities_fields_tensors(df_index)
+# dict_stocks = gt.get_securities_fields_tensors(df_stocks)
 
 # stocks_close_ts = dict_stocks['close']
 # stocks_high_ts = dict_stocks['high']
@@ -137,6 +141,9 @@ df_index.set_index(["order_book_id", "datetime"], inplace=True)
 
 
 # ################## get expected output tensors ########
+
+
+
 # ResidualRollingMeanFunctor = jf.ResidualRollingMean(window_train=30, window_test=20, window=10)
 # ResidualRollingMeanFactor = ResidualRollingMeanFunctor.forward(x_ts, y_ts)
 

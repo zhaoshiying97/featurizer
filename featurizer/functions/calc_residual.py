@@ -20,12 +20,18 @@ from functools import reduce
 from featurizer.functions.split import split_sample3d
 import pdb
 
+# ================================================================== #
+# Analytic solution using Moore-Penrose pseudoinverse rather than    = 
+# using simple multiplicative matrix inverse                         #
+# ================================================================== #
+
 def get_algebra_coef_np(x,y):
     one_arr = np.ones((*x.shape[:-1],1))
     X = np.concatenate((one_arr,x),axis=2)
-    #pdb.set_trace()
-    former = np.linalg.inv(X.transpose(0,2,1)@X)
-    param = former @ X.transpose(0,2,1) @ y
+    #former = np.linalg.inv(X.transpose(0,2,1)@X)
+    #param = former @ X.transpose(0,2,1) @ y
+    mpinv = np.linalg.pinv(X)
+    param = mpinv.dot(y)
     return param
 
 def get_residual_np(x, y, param):
@@ -36,12 +42,29 @@ def get_residual_np(x, y, param):
     return residual
 
 def get_algebra_coef_ts(x,y):
-    one_arr = torch.ones((*x.shape[:-1],1), device=x.device)
-    X = torch.cat((one_arr,x), dim=2)
-    #pdb.set_trace()
-    former = torch.inverse(X.transpose(1,2)@X)
-    param = former @ X.transpose(1,2) @ y
-    return param
+    """
+    Parameters
+    ----------
+    x : TYPE torch.Tensor
+        DESCRIPTION. The input tensor of size (*, m, n)(∗,m,n) where *∗ is zero or more batch dimensions.
+                     in the context of finance, the * dimeson can be interpret company number, the m dimenson
+                     is trading dates, the n dimenson is feature number.
+    y : TYPE
+        DESCRIPTION. the shape of y is (*, m, 1). this is regression task, so the label dimention is 1.
+
+    Returns
+    -------
+    param_ts : TYPE
+        DESCRIPTION. the shope of param_ts is (*, n+1, 1). since the feature number is n and we add intercepte to it, make it n+1.
+
+    """
+    one_arr_ts = torch.ones((*x.shape[:-1],1), device=x.device)
+    X = torch.cat((one_arr_ts,x), dim=2)
+    #former = torch.inverse(X.transpose(1,2)@X)
+    #param = former @ X.transpose(1,2) @ y
+    mpinv_ts = torch.pinverse(X)
+    param_ts = mpinv_ts.matmul(y)
+    return param_ts
 
 def get_residual_ts(x, y, param):
     one_arr = torch.ones((*x.shape[:-1],1), device=x.device)

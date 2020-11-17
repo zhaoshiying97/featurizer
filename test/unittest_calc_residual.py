@@ -29,49 +29,55 @@ x_2d = np.column_stack((x1, x2))
 a1=3.25; a2=2; b=-6.5
 y_fitted = a1*x1 + a2*x2 + b
 # add some noise
-y_2d= y_fitted + randn(n)
+y = y_fitted + randn(n)
+y_2d = np.expand_dims(y, axis= 1)
 
 # parameters calculated from built-in functions in numpy
 A = sm.add_constant(x_2d)
-result = np.linalg.lstsq(A, y_2d)
+result = np.linalg.lstsq(A, y)
 b,a1,a2 = result[0]
+err = np.sqrt(result[1]/len(y))
 
 # 2d tensors
+y_ts = torch.tensor(y)
+y_2d_ts = torch.stack((y_ts, y_ts))
 x_2d_ts = torch.tensor(x_2d)
-y_2d_ts = torch.tensor(y_2d)
 
 # 3d-x and 3d-y
 x_3d_ts = torch.stack((x_2d_ts, x_2d_ts)) # x_3d_ts.shape == (2,20,3)
+y_3d_ts = y_2d_ts.unsqueeze(-1) # y_3d_ts.shape == (1,20,3)
 
-y_stack = torch.stack((y_2d_ts, y_2d_ts))
-y_3d_ts = y_stack.unsqueeze(-1) # y_3d_ts.shape == (1,20,3)
+# expected data for testing residuals
+expected_param_2d = np.expand_dims(result[0],axis=0).T
+expected_param_3d_half = np.expand_dims(expected_param_2d, axis=0)
+expected_param = np.vstack((expected_param_3d_half, expected_param_3d_half))
+expected_residuals_2d = y_2d - A @ expected_param_2d
+res = get_residual_ts(x_3d_ts, y_3d_ts, expected_param)
 
 
-# Begin tests
-class Test_get_algebra_coef_ts(unittest.TestCase):
+# --------- Begin tests -------------
+class TestOLSMethods(unittest.TestCase):
     
     expected_a1, expected_a2, expected_b = a1, a2, b
     
-    def test_forward(self):
-        self.assertTrue(get_algebra_coef_ts(x_3d_ts, y_3d_ts)[0,0,0] - b < 0.001)
-        self.assertTrue(get_algebra_coef_ts(x_3d_ts, y_3d_ts)[1,0,0] - b < 0.001)
-        self.assertTrue(get_algebra_coef_ts(x_3d_ts, y_3d_ts)[0,1,0] - a1 < 0.001)
-        self.assertTrue(get_algebra_coef_ts(x_3d_ts, y_3d_ts)[1,1,0] - a1 < 0.001)
-        self.assertTrue(get_algebra_coef_ts(x_3d_ts, y_3d_ts)[0,2,0] - a2 < 0.001)
-        self.assertTrue(get_algebra_coef_ts(x_3d_ts, y_3d_ts)[1,2,0] - a2 < 0.001)
-        
-      
-# class Test_get_residual_ts(unittest.TestCase):
+    def test_get_algebra_coef_ts(self):
+        output_coef = get_algebra_coef_ts(x_3d_ts, y_3d_ts)
+        self.assertTrue(output_coef[0,0,0] - b < 0.001)
+        self.assertTrue(output_coef[1,0,0] - b < 0.001)
+        self.assertTrue(output_coef[0,1,0] - a1 < 0.001)
+        self.assertTrue(output_coef[1,1,0] - a1 < 0.001)
+        self.assertTrue(output_coef[0,2,0] - a2 < 0.001)
+        self.assertTrue(output_coef[1,2,0] - a2 < 0.001)
     
-#     expected_a1, expected_a2, expected_b = a1, a2, b
     
-#     def test_forward(self):
-#         self.assertTrue(get_algebra_coef_ts(x_3d_ts, y_3d_ts)[0,0,0] - b < 0.001)
-#         self.assertTrue(get_algebra_coef_ts(x_3d_ts, y_3d_ts)[1,0,0] - b < 0.001)
-#         self.assertTrue(get_algebra_coef_ts(x_3d_ts, y_3d_ts)[0,1,0] - a1 < 0.001)
-#         self.assertTrue(get_algebra_coef_ts(x_3d_ts, y_3d_ts)[1,1,0] - a1 < 0.001)
-#         self.assertTrue(get_algebra_coef_ts(x_3d_ts, y_3d_ts)[0,2,0] - a2 < 0.001)
-#         self.assertTrue(get_algebra_coef_ts(x_3d_ts, y_3d_ts)[1,2,0] - a2 < 0.001)      
+    # def test_get_residual_ts(self):
+    #     output_residuals = get_residual_ts(x_3d_ts, y_3d_ts, expected_param)
+    #     self.assertTrue([0,0,0] - b < 0.001)
+    #     self.assertTrue(get_residual_ts(x_3d_ts, y_3d_ts)[1,0,0] - b < 0.001)
+    #     self.assertTrue(get_residual_ts(x_3d_ts, y_3d_ts)[0,1,0] - a1 < 0.001)
+    #     self.assertTrue(get_residual_ts(x_3d_ts, y_3d_ts)[1,1,0] - a1 < 0.001)
+    #     self.assertTrue(get_residual_ts(x_3d_ts, y_3d_ts)[0,2,0] - a2 < 0.001)
+    #     self.assertTrue(get_residual_ts(x_3d_ts, y_3d_ts)[1,2,0] - a2 < 0.001)      
 
 
 if __name__ =='__main__':

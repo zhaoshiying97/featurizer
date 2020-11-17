@@ -70,14 +70,11 @@ class TestOLSMethods(unittest.TestCase):
         self.assertTrue(abs(output_coef[1,2,0] - a2) < 0.001)
     
     
-    # def test_get_residual_ts(self):
-    #     output_residuals = get_residual_ts(x_3d_ts, y_3d_ts, expected_param)
-    #     self.assertTrue([0,0,0] - b < 0.001)
-    #     self.assertTrue(get_residual_ts(x_3d_ts, y_3d_ts)[1,0,0] - b < 0.001)
-    #     self.assertTrue(get_residual_ts(x_3d_ts, y_3d_ts)[0,1,0] - a1 < 0.001)
-    #     self.assertTrue(get_residual_ts(x_3d_ts, y_3d_ts)[1,1,0] - a1 < 0.001)
-    #     self.assertTrue(get_residual_ts(x_3d_ts, y_3d_ts)[0,2,0] - a2 < 0.001)
-    #     self.assertTrue(get_residual_ts(x_3d_ts, y_3d_ts)[1,2,0] - a2 < 0.001)      
+    def test_get_residual_ts(self):
+        output_residuals = get_residual_ts(x_3d_ts, y_3d_ts, expected_param)
+        diff_2d = output_residuals[0,:,:] - expected_residuals_2d
+        self.assertTrue(diff_2d.sum() < 0.0000001)
+     
 
 
 if __name__ =='__main__':

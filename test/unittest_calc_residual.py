@@ -62,12 +62,12 @@ class TestOLSMethods(unittest.TestCase):
     
     def test_get_algebra_coef_ts(self):
         output_coef = get_algebra_coef_ts(x_3d_ts, y_3d_ts)
-        self.assertTrue(output_coef[0,0,0] - b < 0.001)
-        self.assertTrue(output_coef[1,0,0] - b < 0.001)
-        self.assertTrue(output_coef[0,1,0] - a1 < 0.001)
-        self.assertTrue(output_coef[1,1,0] - a1 < 0.001)
-        self.assertTrue(output_coef[0,2,0] - a2 < 0.001)
-        self.assertTrue(output_coef[1,2,0] - a2 < 0.001)
+        self.assertTrue(abs(output_coef[0,0,0] - b) < 0.001)
+        self.assertTrue(abs(output_coef[1,0,0] - b) < 0.001)
+        self.assertTrue(abs(output_coef[0,1,0] - a1) < 0.001)
+        self.assertTrue(abs(output_coef[1,1,0] - a1) < 0.001)
+        self.assertTrue(abs(output_coef[0,2,0] - a2) < 0.001)
+        self.assertTrue(abs(output_coef[1,2,0] - a2) < 0.001)
     
     
     # def test_get_residual_ts(self):

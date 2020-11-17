@@ -36,12 +36,11 @@ def get_residual_np(x, y, param):
     return residual
 
 def get_algebra_coef_ts(x,y):
-    one_arr = torch.ones((*x.shape[:-1],1), device=x.device)
-    X = torch.cat((one_arr,x), dim=2)
-    #pdb.set_trace()
-    former = torch.inverse(X.transpose(1,2)@X)
-    param = former @ X.transpose(1,2) @ y
-    return param
+    one_arr_ts = torch.ones((*x.shape[:-1],1), device=x.device)
+    X = torch.cat((one_arr_ts,x), dim=2)    
+    mpinv_ts = torch.pinverse(X)
+    param_ts = mpinv_ts.matmul(y)
+    return param_ts
 
 def get_residual_ts(x, y, param):
     one_arr = torch.ones((*x.shape[:-1],1), device=x.device)

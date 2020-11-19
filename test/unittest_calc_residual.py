@@ -51,6 +51,8 @@ class TestOLSMethods(unittest.TestCase):
         # 3d-x and 3d-y
         self.x_3d_ts = torch.stack((self.x_2d_ts, self.x_2d_ts)) # x_3d_ts.shape == (2,20,2)
         self.y_3d_ts = self.y_2d_ts.unsqueeze(-1) # y_3d_ts.shape == (1,20,2)
+        
+        self.error_decimal_threshold = 7
     
     
     def test_get_algebra_coef_ts(self):
@@ -60,14 +62,19 @@ class TestOLSMethods(unittest.TestCase):
         # actual output
         output_coef = get_algebra_coef_ts(self.x_3d_ts, self.y_3d_ts)
         
-        # check if the difference between the actual and expected parameters are almost zero
-        err_threshold = 0.000001
-        self.assertTrue(abs(output_coef[0,0,0] - expected_b) < err_threshold)
-        self.assertTrue(abs(output_coef[1,0,0] - expected_b) < err_threshold)
-        self.assertTrue(abs(output_coef[0,1,0] - expected_a1) < err_threshold)
-        self.assertTrue(abs(output_coef[1,1,0] - expected_a1) < err_threshold)
-        self.assertTrue(abs(output_coef[0,2,0] - expected_a2) < err_threshold)
-        self.assertTrue(abs(output_coef[1,2,0] - expected_a2) < err_threshold)
+        # check if the actual and expected parameters are almost equal
+        self.assertAlmostEqual(output_coef[0,0,0].item(), expected_b, self.error_decimal_threshold, 
+                               'Expected param b is different from the actual for 1st commpany')
+        self.assertAlmostEqual(output_coef[1,0,0].item(), expected_b, self.error_decimal_threshold,
+                               'Expected param b is different from the actual for 2nd commpany')
+        self.assertAlmostEqual(output_coef[0,1,0].item(), expected_a1, self.error_decimal_threshold, 
+                               'Expected param a1 is different from the actual for 1st commpany')
+        self.assertAlmostEqual(output_coef[1,1,0].item(), expected_a1, self.error_decimal_threshold, 
+                               'Expected param a1 is different from the actual for 2nd commpany')
+        self.assertAlmostEqual(output_coef[0,2,0].item(), expected_a2, self.error_decimal_threshold,
+                               'Expected param a2 is different from the actual for 1st commpany')
+        self.assertAlmostEqual(output_coef[1,2,0].item(), expected_a2, self.error_decimal_threshold,
+                               'Expected param a2 is different from the actual for 2nd commpany')
     
     
     def test_get_residual_ts(self):
@@ -82,12 +89,13 @@ class TestOLSMethods(unittest.TestCase):
         output_residuals = get_residual_ts(self.x_3d_ts, self.y_3d_ts, expected_params_3d)
         
         # check if the difference between the summation of the actual and the expected residuals is almost zero
+        #  - print the difference if failed
         diff_2d = output_residuals[0,:,:] - expected_residuals_2d
-        err_threshold = 0.0000001
-        self.assertTrue(diff_2d.sum() < err_threshold)
+        error_threshold = 0.1 * self.error_decimal_threshold
+        self.assertTrue(abs((output_residuals[0,:,:] - expected_residuals_2d).sum()) < error_threshold, diff_2d)
     
     
-    # helper function: recursively get expected residuals in the case of rolling
+    # helper function: recursively get expected residuals for the case of rolling
     def get_expected_rolling_resid(self, x_2dnp_with_constant, y, window_train, window_test, n, keep_first_train_nan):
         
         if not n % window_train: 
@@ -96,7 +104,7 @@ class TestOLSMethods(unittest.TestCase):
             num_rolling = n // window_train + 1
         
         # Initialize the expected residuals differently based on whether to keep first train NaN or not
-        if not keep_first_train_nan:
+        if keep_first_train_nan:
             expected_resid = np.expand_dims(np.array([np.nan] * window_train), axis=0).T
         else:
             cur_params = np.linalg.lstsq(x_2dnp_with_constant[:window_train, :], y[:window_train])[0]
@@ -138,6 +146,52 @@ class TestOLSMethods(unittest.TestCase):
         window_train, window_test = 5, 5
         '''
         manually make expected 2d residuals in numpy recursively
+           - The first 5 entries should be NaN
+           - Rolling should occur 4 times; Test window sizes are 5, 5, 5, 5, respectively
+        '''
+        expected_resid = self.get_expected_rolling_resid(self.A, self.y, window_train, window_test, self.n, True)
+        expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
+        expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
+        
+        output_resid = calc_residual3d_ts(self.x_3d_ts, self.y_3d_ts, window_train=window_train, 
+                                          window_test=window_test, keep_first_train_nan= True)
+        output_resid_np = np.array(output_resid)
+        
+        # Check if the difference between the expected and actual residuals sum up to almost 0
+        #   - print the difference if failed
+        err_threshold = 0.1 * self.error_decimal_threshold
+        diff = (output_resid_np - expected_resid_3d).round(3)
+        self.assertTrue(abs(np.nansum(diff)) < err_threshold, diff)
+        
+        
+    def test_calc_residual3d_ts_first_train_not_NaN(self):
+        
+        window_train, window_test = 5, 5
+        '''
+        manually make expected 2d residuals in numpy recursively
+           - The first 5 entries should NOT be NaN
+           - Rolling should occur 4 times; Test window sizes are 5, 5, 5, 5, respectively
+        '''
+        expected_resid = self.get_expected_rolling_resid(self.A, self.y, window_train, window_test, self.n, False)
+        expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
+        expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
+        
+        output_resid = calc_residual3d_ts(self.x_3d_ts, self.y_3d_ts, window_train=window_train, 
+                                          window_test=window_test, keep_first_train_nan= False)
+        output_resid_np = np.array(output_resid)
+        
+        # Check if the difference between the expected and actual residuals sum up to almost 0
+        #   - print the difference if failed
+        err_threshold = 0.00001 * self.error_decimal_threshold
+        diff = (output_resid_np - expected_resid_3d).round(3)
+        self.assertTrue(abs(np.sum(diff)) < err_threshold, diff)
+        
+        
+    def test_calc_residual3d_ts_irregular_last_test_size(self):
+        
+        window_train, window_test = 9, 5
+        '''
+        manually make expected 2d residuals in numpy recursively
            - The first 9 entries should be NaN
            - Rolling should occur 3 times; Test window sizes are 5, 5, 1, respectively
         '''
@@ -149,33 +203,11 @@ class TestOLSMethods(unittest.TestCase):
                                           window_test=window_test, keep_first_train_nan= True)
         output_resid_np = np.array(output_resid)
         
-        # Check if the difference between the expected and actual output is approaximately 0
-        err_threshold = 0.00001
+        # Check if the difference between the expected and actual residuals sum up to almost 0
+        #   - print the difference if failed
+        err_threshold = 0.00001 * self.error_decimal_threshold
         diff = (output_resid_np - expected_resid_3d).round(3)
-        self.assertTrue(np.nansum(diff) < err_threshold)
-        
-    def test_calc_residual3d_ts_first_train_not_NaN(self):
-        
-        window_train, window_test = 5, 5
-        '''
-        manually make expected 2d residuals in numpy recursively
-           - The first 9 entries should be NaN
-           - Rolling should occur 3 times; Test window sizes are 5, 5, 1, respectively
-        '''
-        expected_resid = self.get_expected_rolling_resid(self.A, self.y, window_train, window_test, self.n, False)
-        expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
-        expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
-        
-        output_resid = calc_residual3d_ts(self.x_3d_ts, self.y_3d_ts, window_train=window_train, 
-                                          window_test=window_test, keep_first_train_nan= False)
-        output_resid_np = np.array(output_resid)
-        
-        # Check if the difference between the expected and actual output is approaximately 0
-        err_threshold = 0.00001
-        diff = (output_resid_np - expected_resid_3d).round(3)
-        self.assertTrue(np.nansum(diff) < err_threshold)
-        
-
+        self.assertTrue(abs(np.nansum(diff)) < err_threshold, diff)
         
      
 

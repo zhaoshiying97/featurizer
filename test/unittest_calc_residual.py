@@ -186,7 +186,13 @@ class TestOLSMethods(unittest.TestCase):
         diff = (output_resid_np - expected_resid_3d).round(3)
         self.assertTrue(abs(np.sum(diff)) < err_threshold, diff)
         
-        
+    
+    '''
+    This function currently is expected to fail. 
+        - The difference should be between the residuals from the last two rollings.
+        - Bug possibly from function split_sample3d
+
+    '''
     def test_calc_residual3d_ts_irregular_last_test_size(self):
         
         window_train, window_test = 9, 5

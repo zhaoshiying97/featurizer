@@ -280,7 +280,7 @@ class Alpha043(Functor):
 
     def forward(self, close_ts, volume_ts):
         sign = torch.sign(tsf.diff(close_ts, 1))
-        output_tensor = sign * volume_ts
+        output_tensor = output_tensor = tsf.rolling_sum_(sign * volume_ts,6)
         return output_tensor
 
 

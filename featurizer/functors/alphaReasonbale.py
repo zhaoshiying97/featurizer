@@ -98,15 +98,11 @@ class kd_PVDeviation_rankTsMax_shortrank_midterm(Functor):
         return output_tensor
 
 
-class kd_PVDeviation_rankTsMax_midrank_midterm
+class kd_PVDeviation_rankTsMax_midrank_midterm(Functor):
 
-
-    (Functor):
-
-
-def forward(self, volume_ts, high_ts):
-    output_tensor = -1 * tsf.rolling_max(tsf.rolling_corr(tsf.ts_rank(volume_ts, 10), tsf.ts_rank(high_ts, 10), 10), 10)
-    return output_tensor
+    def forward(self, volume_ts, high_ts):
+        output_tensor = -1 * tsf.rolling_max(tsf.rolling_corr(tsf.ts_rank(volume_ts, 10), tsf.ts_rank(high_ts, 10), 10), 10)
+        return output_tensor
 
 
 class kd_PVDeviation_rankTsMax_longrank_midterm(Functor):

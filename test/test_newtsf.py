@@ -56,8 +56,8 @@ class TestnewTsf(unittest.TestCase):
 
     def test_argmax_change(self):
         output_tsargmax = tsf.ts_argmax(self.test_2d_change, 2)
-        output_tsargmax  = torch.where(torch.isnan(output_tsargmax), torch.full_like(output_tsargmax, 666),
-                                    output_tsargmax)  # fillna
+        output_tsargmax = torch.where(torch.isnan(output_tsargmax), torch.full_like(output_tsargmax, 666),
+                                      output_tsargmax)  # fillna
         expected = torch.tensor([[np.nan, np.nan], [1, 0], [1, 0], [1, 0], [1, 0]])
         expected = torch.where(torch.isnan(expected), torch.full_like(expected, 666), expected)  # fillna
         result = (expected == output_tsargmax).all().item()
@@ -65,8 +65,8 @@ class TestnewTsf(unittest.TestCase):
 
     def test_argmax_ties(self):
         output_tsargmax = tsf.ts_argmax(self.test_2d_ties, 2)
-        output_tsargmax  = torch.where(torch.isnan(output_tsargmax), torch.full_like(output_tsargmax, 666),
-                                    output_tsargmax)  # fillna
+        output_tsargmax = torch.where(torch.isnan(output_tsargmax), torch.full_like(output_tsargmax, 666),
+                                      output_tsargmax)  # fillna
         expected = torch.tensor([[np.nan, np.nan], [0, 0], [0, 0], [0, 0], [0, 0]])
         expected = torch.where(torch.isnan(expected), torch.full_like(expected, 666), expected)  # fillna
         result = (expected == output_tsargmax).all().item()
@@ -74,8 +74,8 @@ class TestnewTsf(unittest.TestCase):
 
     def test_argmin_change(self):
         output_tsargmax = tsf.ts_argmin(self.test_2d_change, 2)
-        output_tsargmax  = torch.where(torch.isnan(output_tsargmax), torch.full_like(output_tsargmax, 666),
-                                    output_tsargmax)  # fillna
+        output_tsargmax = torch.where(torch.isnan(output_tsargmax), torch.full_like(output_tsargmax, 666),
+                                      output_tsargmax)  # fillna
         expected = torch.tensor([[np.nan, np.nan], [0, 1], [0, 1], [0, 1], [0, 1]])
         expected = torch.where(torch.isnan(expected), torch.full_like(expected, 666), expected)  # fillna
         result = (expected == output_tsargmax).all().item()
@@ -83,12 +83,13 @@ class TestnewTsf(unittest.TestCase):
 
     def test_argmin_ties(self):
         output_tsargmax = tsf.ts_argmin(self.test_2d_ties, 2)
-        output_tsargmax  = torch.where(torch.isnan(output_tsargmax), torch.full_like(output_tsargmax, 666),
-                                    output_tsargmax)  # fillna
+        output_tsargmax = torch.where(torch.isnan(output_tsargmax), torch.full_like(output_tsargmax, 666),
+                                      output_tsargmax)  # fillna
         expected = torch.tensor([[np.nan, np.nan], [0, 0], [0, 0], [0, 0], [0, 0]])
         expected = torch.where(torch.isnan(expected), torch.full_like(expected, 666), expected)  # fillna
         result = (expected == output_tsargmax).all().item()
         self.assertTrue(result, 'test_argmin_ties failed')
+
 
 if __name__ == '__main__':
     unittest.main()

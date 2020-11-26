@@ -110,9 +110,7 @@ def calc_residual3d_ts(x_tensor, y_tensor, window_train=10, window_test=5, keep_
     test_xy = split_sample3d(data_xy, window=window_test, step=window_test, offset=window_train, keep_tail=False, merge_remain=True)
     
     if len(train_xy) > len(test_xy):
-        last_xy = test_xy[-1]
-        nlast_xy = list(torch.split(last_xy, [window_test, last_xy.size()[1] - window_test], dim=1))
-        test_xy = test_xy[:-1] + nlast_xy
+        train_xy = train_xy[:-abs(len(train_xy) - len(test_xy))]
     else:
         test_xy = test_xy[:-abs(len(train_xy) - len(test_xy))]
     

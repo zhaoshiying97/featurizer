@@ -178,7 +178,7 @@ def rolling_max(tensor, window):
     return output_tensor
 
 def rolling_rank(np_data):
-    return rankdata(np_data)[-1]
+    return rankdata(np_data,method='min')[-1]
 
 
 def ts_rank(tensor, window=10):
@@ -193,7 +193,7 @@ def ts_rank(tensor, window=10):
 def rank(tensor, axis=1, pct=True):
     tensor_np = tensor.cpu().detach().numpy()
     data_df = pd.DataFrame(tensor_np)
-    output_df = data_df.rank(axis=axis, pct=pct)
+    output_df = data_df.rank(axis=axis, pct=pct,method='min')
     output_np = np.array(output_df)
     output_tensor = torch.tensor(output_np)
     return output_tensor

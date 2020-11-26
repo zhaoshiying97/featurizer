@@ -51,11 +51,11 @@ class Alpha005(Functor):
         return output_tensor
 
 
-class Alpha006(Functor):
-
-    def forward(self, high_ts, open_ts):
-        output_tensor = -1 * tsf.rank(torch.sign(tsf.diff((((open_ts * 0.85) + (high_ts * 0.15))), 4)))
-        return output_tensor
+# class Alpha006(Functor):
+#
+#     def forward(self, high_ts, open_ts):
+#         output_tensor = -1 * tsf.rank(torch.sign(tsf.diff((((open_ts * 0.85) + (high_ts * 0.15))), 4)))
+#         return output_tensor
 
 
 # class Alpha007(Functor): # what max?

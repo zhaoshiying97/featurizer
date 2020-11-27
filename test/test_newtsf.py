@@ -90,6 +90,42 @@ class TestnewTsf(unittest.TestCase):
         result = (expected == output_tsargmax).all().item()
         self.assertTrue(result, 'test_argmin_ties failed')
 
+    def test_diff_normal(self):
+        output_diff = tsf.diff(self.test_2d_change, 1)
+        output_diff = torch.where(torch.isnan(output_diff), torch.full_like(output_diff, 666),
+                                  output_diff)  # fillna
+        expected = torch.tensor([[np.nan, np.nan], [1, -1], [1, -1], [1, -1], [1, -1]])
+        expected = torch.where(torch.isnan(expected), torch.full_like(expected, 666), expected)
+        result = (expected == output_diff).all().item()
+        self.assertTrue(result, 'test_diff_normal failed')
+
+    def test_diff_inverse(self):
+        output_diff = tsf.diff(self.test_2d_change, -1)
+        output_diff = torch.where(torch.isnan(output_diff), torch.full_like(output_diff, 666),
+                                  output_diff)  # fillna
+        expected = torch.tensor([[-1, 1], [-1, 1], [-1, 1], [-1, 1], [np.nan, np.nan]])
+        expected = torch.where(torch.isnan(expected), torch.full_like(expected, 666), expected)
+        result = (expected == output_diff).all().item()
+        self.assertTrue(result, 'test_diff_inverse failed')
+
+    def test_shift_forward(self):
+        output_diff = tsf.shift(self.test_2d_change, 1)
+        output_diff = torch.where(torch.isnan(output_diff), torch.full_like(output_diff, 666),
+                                  output_diff)  # fillna
+        expected = torch.tensor([[np.nan, np.nan], [1, 5], [2, 4], [3, 3], [4, 2]])
+        expected = torch.where(torch.isnan(expected), torch.full_like(expected, 666), expected)
+        result = (expected == output_diff).all().item()
+        self.assertTrue(result, 'test_shift_forward failed')
+
+    def test_shift_backward(self):
+        output_diff = tsf.shift(self.test_2d_change, -1)
+        output_diff = torch.where(torch.isnan(output_diff), torch.full_like(output_diff, 666),
+                                  output_diff)  # fillna
+        expected = torch.tensor([[2, 4], [3, 3], [4, 2], [5, 1], [np.nan, np.nan]])
+        expected = torch.where(torch.isnan(expected), torch.full_like(expected, 666), expected)
+        result = (expected == output_diff).all().item()
+        self.assertTrue(result, 'test_shift_backward failed')
+
 
 if __name__ == '__main__':
     unittest.main()

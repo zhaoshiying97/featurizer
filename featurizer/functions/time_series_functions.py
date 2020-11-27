@@ -162,7 +162,6 @@ def ema(tensor, window):
     output_tensor = torch.tensor(output_df.values, dtype=tensor.dtype, device=tensor.device)
     return output_tensor
 
-
 def rolling_min(tensor, window):
     tensor_np = tensor.cpu().detach().numpy()
     tensor_df = pd.DataFrame(tensor_np)
@@ -180,7 +179,6 @@ def rolling_max(tensor, window):
 def rolling_rank(np_data):
     return rankdata(np_data,method='min')[-1]
 
-
 def ts_rank(tensor, window=10):
     tensor_np = tensor.cpu().detach().numpy()
     data_df=pd.DataFrame(tensor_np)
@@ -189,7 +187,6 @@ def ts_rank(tensor, window=10):
     output_tf=torch.tensor(output_np)
     return output_tf
 
-#
 def rank(tensor, axis=1, pct=True):
     tensor_np = tensor.cpu().detach().numpy()
     data_df = pd.DataFrame(tensor_np)

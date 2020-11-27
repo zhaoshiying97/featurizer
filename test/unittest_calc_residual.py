@@ -36,13 +36,7 @@ class TestOLSMethods(unittest.TestCase):
         # add some noise
         self.y = y_fitted + randn(self.n)
         self.y_2d = np.expand_dims(self.y, axis= 1)
-        
-        # # parameters calculated from built-in functions in numpy
-        # self.A = sm.add_constant(self.x_2d)
-        # self.expected_params = np.linalg.lstsq(self.A, self.y)
-        # # expected_b, expected_a1, expected_a2 = expected_params[0]
-        # self.err = np.sqrt(self.expected_params[1]/len(self.y))
-        
+                
         # parameters calculated from built-in functions in Statsmodels.OLS
         self.A = sm.add_constant(self.x_2d)
         model = sm.OLS(self.y_2d, self.A)
@@ -85,9 +79,7 @@ class TestOLSMethods(unittest.TestCase):
     
     
     def test_get_residual_ts(self):
-        # pdb.set_trace()
         # get expected parameters and expected residuals in the desired format
-        # expected_params_2d = np.expand_dims(self.expected_params[0],axis=0).T
         expected_params_3d_half = np.expand_dims(self.expected_params, axis=0)
         expected_params_3d = np.vstack((expected_params_3d_half, expected_params_3d_half))
         expected_residuals_2d = np.expand_dims(self.y, axis= 1) - self.A @ self.expected_params
@@ -104,7 +96,6 @@ class TestOLSMethods(unittest.TestCase):
     
     # helper function: recursively get expected residuals for the case of rolling
     def get_expected_rolling_resid(self, x_2dnp_with_constant, y, window_train, window_test, n, keep_first_train_nan, split_end):
-        # pdb.set_trace()
         if split_end:
             if (n - window_train) % window_test: # the actual last test size is less than window_test
                 num_rolling = (n - window_train) // window_test + 1
@@ -113,45 +104,31 @@ class TestOLSMethods(unittest.TestCase):
         else: # in this case, the last test size doesn't affect number of rolling
             num_rolling = (n - window_train) // window_test
         end_test_size = n - window_train - window_test * (num_rolling-1)
-        # num_rolling = n // window_train - 1
         
         # Initialize the expected residuals differently based on whether to keep first train NaN or not
         if keep_first_train_nan:
             expected_resid = np.expand_dims(np.array([np.nan] * window_train), axis=0).T
         else:
             cur_params = sm.OLS(y[:window_train], x_2dnp_with_constant[:window_train, :]).fit().params.T
-            # cur_params = np.expand_dims(cur_params, axis=-1) # (3,1)
             expected_resid = np.expand_dims(y[:window_train] - x_2dnp_with_constant[:window_train, :] @ cur_params, axis=1)
         
         # Rercursively get expected residuals
         for i in range(num_rolling):
-            # print('round', i)
-            # pdb.set_trace()
             if i == num_rolling - 1 and (n-window_train) % window_test: # last round of rolling, and when the size of data for test is less than window_test
                 y_train = y[n - end_test_size - window_train : end_test_size*-1]
                 y_test = y[end_test_size*-1 : ]
                 x_train = x_2dnp_with_constant[n - end_test_size - window_train : end_test_size*-1, :]
                 x_test = x_2dnp_with_constant[end_test_size*-1 : ]
-                # print('test_size:', test_size)
             else:
                 y_train = y[i*window_test : i*window_test+window_train]
                 y_test = y[i*window_test+window_train : (i+1)*window_test+window_train]
                 x_train = x_2dnp_with_constant[i*window_test : i*window_test+window_train, :]
                 x_test = x_2dnp_with_constant[i*window_test+window_train : (i+1)*window_test+window_train, :]
-                # print('test_size:', window_test)
             
             cur_params = sm.OLS(y_train, x_train).fit().params.T
-            # cur_params = np.expand_dims(cur_params, axis=-1) # (3,1)
-            # y_test_2d = np.expand_dims(y_test, axis= 1)
-            
-            # cur_resid = y_test_2d - x_test @ cur_params
             cur_resid = np.expand_dims(y_test - x_test @ cur_params, axis=-1)
             expected_resid = np.vstack((expected_resid, cur_resid)) # shape == (n,1)
-            # print('y_train:', y_train)
-            # print('y_test:', y_test)
-            # print('cur_params:\n', cur_params)
-            # print('cur_resid:\n', cur_resid)
-            # print('expected_resid:\n', expected_resid, '\n\n')
+
         return expected_resid
         
         
@@ -211,7 +188,6 @@ class TestOLSMethods(unittest.TestCase):
            - The first 9 entries should be NaN
            - Rolling should occur 3 times; Test window sizes are 5, 5, 1, respectively
         '''
-        # pdb.set_trace()
         expected_resid = self.get_expected_rolling_resid(self.A, self.y, window_train, window_test, self.n, 
                                                          keep_first_train_nan=True, split_end=True)
         expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
@@ -236,7 +212,6 @@ class TestOLSMethods(unittest.TestCase):
            - The first 9 entries should be NaN
            - Rolling should occur 3 times; Test window sizes are 5, 5, 1, respectively
         '''
-        # pdb.set_trace()
         expected_resid = self.get_expected_rolling_resid(self.A, self.y, window_train, window_test, self.n, 
                                                          keep_first_train_nan=True, split_end=False)
         expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)

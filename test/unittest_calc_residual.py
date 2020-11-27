@@ -82,19 +82,6 @@ class TestOLSMethods(unittest.TestCase):
         self.assertAlmostEqual(output_coef[1,2,0].item(), expected_a2, self.error_decimal_threshold,
                                'Expected param a2 is different from the actual for 2nd commpany')
         
-        
-    # def test_get_algebra_coef_ts_partial(self):
-    #     y_partial = self.y_3d_ts[0][8:-7]
-    #     x_partial = self.x_3d_ts[0][8:-7]
-    #     A_partial = sm.add_constant(x_partial)
-    #     expected_params_partial = np.linalg.lstsq(A_partial, y_partial)[0]
-        
-    #     x_partial_3d = torch.stack((x_partial, x_partial))
-    #     y_partial_3d = torch.stack((y_partial, y_partial))
-    #     output_params_partial = get_algebra_coef_ts(x_partial_3d, y_partial_3d)[0].numpy()
-    #     diff = expected_params_partial - output_params_partial
-        
-    #     self.assertTrue((expected_params_partial == output_params_partial).all(), diff)
     
     
     def test_get_residual_ts(self):
@@ -178,7 +165,7 @@ class TestOLSMethods(unittest.TestCase):
         expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
         
         output_resid = calc_residual3d_ts(self.x_3d_ts, self.y_3d_ts, window_train=window_train, 
-                                          window_test=window_test, keep_first_train_nan= True)
+                                          window_test=window_test, keep_first_train_nan= True, split_end=True)
         output_resid_np = np.array(output_resid)
         
         # Check if the difference between the expected and actual residuals sum up to almost 0
@@ -201,7 +188,7 @@ class TestOLSMethods(unittest.TestCase):
         expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
         
         output_resid = calc_residual3d_ts(self.x_3d_ts, self.y_3d_ts, window_train=window_train, 
-                                          window_test=window_test, keep_first_train_nan= False)
+                                          window_test=window_test, keep_first_train_nan= False, split_end=True)
         output_resid_np = np.array(output_resid)
         
         # Check if the difference between the expected and actual residuals sum up to almost 0
@@ -231,7 +218,7 @@ class TestOLSMethods(unittest.TestCase):
         expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
         
         output_resid = calc_residual3d_ts(self.x_3d_ts, self.y_3d_ts, window_train=window_train, 
-                                          window_test=window_test, keep_first_train_nan= True)
+                                          window_test=window_test, keep_first_train_nan= True, split_end=True)
         output_resid_np = output_resid.numpy()
         
         # Check if the difference between the expected and actual residuals sum up to almost 0

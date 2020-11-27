@@ -31,7 +31,7 @@ def get_algebra_coef_np(x,y):
     #former = np.linalg.inv(X.transpose(0,2,1)@X)
     #param = former @ X.transpose(0,2,1) @ y
     mpinv = np.linalg.pinv(X)
-    param = mpinv.dot(y)
+    param = mpinv.dot(y)[:,:,0,:]
     return param
 
 def get_residual_np(x, y, param):
@@ -58,11 +58,8 @@ def get_algebra_coef_ts(x,y):
         DESCRIPTION. the shope of param_ts is (*, n+1, 1). since the feature number is n and we add intercepte to it, make it n+1.
 
     """
-    # pdb.set_trace()
     one_arr_ts = torch.ones((*x.shape[:-1],1), device=x.device)
     X = torch.cat((one_arr_ts,x), dim=2)
-    #former = torch.inverse(X.transpose(1,2)@X)
-    #param = former @ X.transpose(1,2) @ y
     mpinv_ts = torch.pinverse(X)
     param_ts = mpinv_ts.matmul(y)
     return param_ts
@@ -74,8 +71,7 @@ def get_residual_ts(x, y, param):
     residual = y - predicted
     return residual
 
-def calc_residual3d_np(x_np, y_np, window_train=10, window_test=5, keep_first_train_nan=False):
-    
+def calc_residual3d_np(x_np, y_np, window_train=10, window_test=5, keep_first_train_nan=False, split_end=True):
     data_xy = np.concatenate((x_np, y_np), axis=2)
     # nan to num
     data_xy = np.nan_to_num(data_xy)
@@ -84,7 +80,12 @@ def calc_residual3d_np(x_np, y_np, window_train=10, window_test=5, keep_first_tr
     test_xy = split_sample3d(data_xy, window=window_test, step=window_test, offset=window_train, keep_tail=False, merge_remain=True)
     
     if len(train_xy) > len(test_xy):
-        train_xy = train_xy[:-abs(len(train_xy) - len(test_xy))]
+        if not split_end:
+            train_xy = train_xy[:-abs(len(train_xy) - len(test_xy))]
+        else:
+            last_xy = test_xy[-1]
+            nlast_xy = list(torch.split(last_xy, [window_test, last_xy.size()[1] - window_test], dim=1))
+            test_xy = test_xy[:-1] + nlast_xy
     else:
         test_xy = test_xy[:-abs(len(train_xy) - len(test_xy))]
     
@@ -110,7 +111,7 @@ def calc_residual3d_ts(x_tensor, y_tensor, window_train=10, window_test=5, keep_
     
     train_xy = split_sample3d(data_xy, window=window_train, step=window_test, offset=0, keep_tail=False, merge_remain=False)
     test_xy = split_sample3d(data_xy, window=window_test, step=window_test, offset=window_train, keep_tail=False, merge_remain=True)
-    # pdb.set_trace()
+
     if len(train_xy) > len(test_xy):
         if not split_end:
             train_xy = train_xy[:-abs(len(train_xy) - len(test_xy))]
@@ -118,16 +119,16 @@ def calc_residual3d_ts(x_tensor, y_tensor, window_train=10, window_test=5, keep_
             last_xy = test_xy[-1]
             nlast_xy = list(torch.split(last_xy, [window_test, last_xy.size()[1] - window_test], dim=1))
             test_xy = test_xy[:-1] + nlast_xy
-
     else:
         test_xy = test_xy[:-abs(len(train_xy) - len(test_xy))]
-    # pdb.set_trace()
+
     train_x_list = [data[:, :,:-1] for data in train_xy]  # :-1
     train_y_list = [data[:, :, -1:] for data in train_xy]
     test_x_list = [data[:, :, :-1] for data in test_xy]
     test_y_list = [data[:, :, -1:] for data in test_xy]
     
     param_list = list(map(lambda x, y: get_algebra_coef_ts(x, y), train_x_list, train_y_list))
+    print('ts param shape:', param_list[0].shape)
     residual_train_list = list(map(lambda x, y, p: get_residual_ts(x,y,p), train_x_list, train_y_list, param_list))
     residual_test_list = list(map(lambda x, y, p: get_residual_ts(x,y,p), test_x_list, test_y_list, param_list))
     if keep_first_train_nan:

@@ -58,6 +58,7 @@ def get_algebra_coef_ts(x,y):
         DESCRIPTION. the shope of param_ts is (*, n+1, 1). since the feature number is n and we add intercepte to it, make it n+1.
 
     """
+    # pdb.set_trace()
     one_arr_ts = torch.ones((*x.shape[:-1],1), device=x.device)
     X = torch.cat((one_arr_ts,x), dim=2)
     #former = torch.inverse(X.transpose(1,2)@X)
@@ -104,16 +105,21 @@ def calc_residual3d_np(x_np, y_np, window_train=10, window_test=5, keep_first_tr
     return resid_np
 
 def calc_residual3d_ts(x_tensor, y_tensor, window_train=10, window_test=5, keep_first_train_nan=False):
+   
     data_xy = torch.cat((x_tensor, y_tensor), dim=2)
     
     train_xy = split_sample3d(data_xy, window=window_train, step=window_test, offset=0, keep_tail=False, merge_remain=False)
     test_xy = split_sample3d(data_xy, window=window_test, step=window_test, offset=window_train, keep_tail=False, merge_remain=True)
-    
+    # pdb.set_trace()
     if len(train_xy) > len(test_xy):
-        train_xy = train_xy[:-abs(len(train_xy) - len(test_xy))]
+        # train_xy = train_xy[:-abs(len(train_xy) - len(test_xy))]
+        last_xy = test_xy[-1]
+        nlast_xy = list(torch.split(last_xy, [window_test, last_xy.size()[1] - window_test], dim=1))
+        test_xy = test_xy[:-1] + nlast_xy
+
     else:
         test_xy = test_xy[:-abs(len(train_xy) - len(test_xy))]
-    
+    # pdb.set_trace()
     train_x_list = [data[:, :,:-1] for data in train_xy]  # :-1
     train_y_list = [data[:, :, -1:] for data in train_xy]
     test_x_list = [data[:, :, :-1] for data in test_xy]

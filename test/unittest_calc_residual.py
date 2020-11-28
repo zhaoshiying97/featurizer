@@ -252,6 +252,32 @@ class TestOLSMethods(unittest.TestCase):
         self.assertTrue(abs(np.nansum(diff)) < err_threshold, diff)
         
         
+    def test_calc_residual3d_np_window_test_greater(self):
+        
+        window_train, window_test = 4, 7
+        x_3d_np = self.x_3d_ts.numpy()
+        y_3d_np = self.y_3d_ts.numpy()
+        '''
+        manually make expected 2d residuals in numpy recursively
+           - The first 4 entries should be NaN
+           - Rolling should occur 3 times; Test window sizes are 7, 7, 2, respectively
+        '''
+        expected_resid = self.get_expected_rolling_resid(self.A, self.y, window_train, window_test, self.n, 
+                                                         keep_first_train_nan=True, split_end=True)
+        expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
+        expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
+        
+        output_resid_np = calc_residual3d_np(x_3d_np, y_3d_np, window_train=window_train, 
+                                             window_test=window_test, keep_first_train_nan= True, split_end=True)
+        # output_resid_np = output_resid.numpy()
+        
+        # Check if the difference between the expected and actual residuals sum up to almost 0
+        #   - print the difference if failed
+        err_threshold = 0.00001 * self.error_decimal_threshold
+        diff = (output_resid_np - expected_resid_3d).round(3)
+        self.assertTrue(abs(np.nansum(diff)) < err_threshold, diff)
+        
+        
      
 
 if __name__ =='__main__':

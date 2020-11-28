@@ -78,14 +78,14 @@ def calc_residual3d_np(x_np, y_np, window_train=10, window_test=5, keep_first_tr
     
     train_xy = split_sample3d(data_xy, window=window_train, step=window_test, offset=0, keep_tail=False, merge_remain=False)
     test_xy = split_sample3d(data_xy, window=window_test, step=window_test, offset=window_train, keep_tail=False, merge_remain=True)
-    
+    # pdb.set_trace()
     if len(train_xy) > len(test_xy):
         if not split_end:
             train_xy = train_xy[:-abs(len(train_xy) - len(test_xy))]
         else:
             last_xy = test_xy[-1]
-            nlast_xy = list(torch.split(last_xy, [window_test, last_xy.size()[1] - window_test], dim=1))
-            test_xy = test_xy[:-1] + nlast_xy
+            splitted_last_xy = np.split(last_xy, [window_test], axis=1)
+            test_xy = test_xy[:-1] + splitted_last_xy
     else:
         test_xy = test_xy[:-abs(len(train_xy) - len(test_xy))]
     
@@ -111,14 +111,14 @@ def calc_residual3d_ts(x_tensor, y_tensor, window_train=10, window_test=5, keep_
     
     train_xy = split_sample3d(data_xy, window=window_train, step=window_test, offset=0, keep_tail=False, merge_remain=False)
     test_xy = split_sample3d(data_xy, window=window_test, step=window_test, offset=window_train, keep_tail=False, merge_remain=True)
-
+    
     if len(train_xy) > len(test_xy):
         if not split_end:
             train_xy = train_xy[:-abs(len(train_xy) - len(test_xy))]
         else:
             last_xy = test_xy[-1]
-            nlast_xy = list(torch.split(last_xy, [window_test, last_xy.size()[1] - window_test], dim=1))
-            test_xy = test_xy[:-1] + nlast_xy
+            splitted_last_xy = list(torch.split(last_xy, [window_test, last_xy.size()[1] - window_test], dim=1))
+            test_xy = test_xy[:-1] + splitted_last_xy
     else:
         test_xy = test_xy[:-abs(len(train_xy) - len(test_xy))]
 

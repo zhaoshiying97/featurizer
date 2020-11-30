@@ -144,7 +144,7 @@ def calc_residual3d(x_tensor, y_tensor, window_train=10, window_test=5, keep_fir
     if isinstance(x_tensor, torch.Tensor):
         output = calc_residual3d_ts(x_tensor=x_tensor, y_tensor=y_tensor, window_train=window_train, window_test=window_test, keep_first_train_nan=keep_first_train_nan)
     else:
-        output = calc_residual3d_ts(x_np=x_tensor, y_np=y_tensor, window_train=window_train, window_test=window_test, keep_first_train_nan=keep_first_train_nan)
+        output = calc_residual3d_np(x_np=x_tensor, y_np=y_tensor, window_train=window_train, window_test=window_test, keep_first_train_nan=keep_first_train_nan)
     return output
 
 

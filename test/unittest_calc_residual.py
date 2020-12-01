@@ -36,7 +36,7 @@ class TestOLSMethods(unittest.TestCase):
         # add some noise
         self.y = y_fitted + randn(self.n)
         self.y_2d = np.expand_dims(self.y, axis= 1)
-                
+
         # parameters calculated from built-in functions in Statsmodels.OLS
         self.A = sm.add_constant(self.x_2d)
         model = sm.OLS(self.y_2d, self.A)
@@ -75,8 +75,7 @@ class TestOLSMethods(unittest.TestCase):
                                'Expected param a2 is different from the actual for 1st commpany')
         self.assertAlmostEqual(output_coef[1,2,0].item(), expected_a2, self.error_decimal_threshold,
                                'Expected param a2 is different from the actual for 2nd commpany')
-        
-    
+
     
     def test_get_residual_ts(self):
         # get expected parameters and expected residuals in the desired format
@@ -159,6 +158,7 @@ class TestOLSMethods(unittest.TestCase):
     def test_calc_residual3d_ts_first_train_not_NaN(self):
         
         window_train, window_test = 8, 4
+
         '''
         manually make expected 2d residuals in numpy recursively
             - The first 10 entries should NOT be NaN
@@ -178,7 +178,7 @@ class TestOLSMethods(unittest.TestCase):
         err_threshold = 0.00001 * self.error_decimal_threshold
         diff = (output_resid_np - expected_resid_3d).round(3)
         self.assertTrue(abs(np.sum(diff)) < err_threshold, diff)
-        
+
 
     def test_calc_residual3d_ts_irregular_last_test_size(self):
         

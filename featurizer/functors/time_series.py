@@ -58,10 +58,10 @@ class RollingDownsideStd(Functor):
     
     def __init__(self, window, benchmark):
         self._window = window
-        self.benchmark = benchmark
+        self._benchmark = benchmark
     
     def forward(self, tensor):
-        return tsf.rolling_downside_std(tensor, window=self._window, tensor_benchmark=self.benchmark)
+        return tsf.rolling_downside_std(tensor, window=self._window, tensor_benchmark=self._benchmark)
 
 class RollingMeanScaledByStd(Functor):
     
@@ -113,6 +113,14 @@ class RollingMax(Functor):
     def forward(self, tensor):
         return tsf.rolling_max(tensor, window=self._window)
 
+class RollingMin(Functor):
+    
+    def __init__(self, window):
+        self._window = window
+    
+    def forward(self, tensor: torch.tensor) -> torch.tensor:
+        return tsf.rolling_min(data_ts = tensor, window = self._window)
+    
 class RollingMaxDrawdown(Functor):
     
     def __init__(self, window):

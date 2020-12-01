@@ -109,6 +109,13 @@ def rolling_std(tensor, window):
     output_tensor = torch.tensor(output_df.values, dtype=tensor.dtype, device=tensor.device)
     return output_tensor
 
+def rolling_std_dof_0(tensor, window): # dof: degree of freedom
+    tensor_np = tensor.cpu().detach().numpy()
+    tensor_df = pd.DataFrame(tensor_np)
+    output_df = tensor_df.rolling(window).std(ddof=0)
+    output_tensor = torch.tensor(output_df.values, dtype=tensor.dtype, device=tensor.device)
+    return output_tensor
+
 def rolling_weighted_std(tensor, window, halflife=90):
     tensor_np = tensor.cpu().detach().numpy()
     tensor_df = pd.DataFrame(tensor_np)
@@ -185,6 +192,13 @@ def rolling_max(tensor, window):
     output_tensor = torch.tensor(output_df.values, dtype=tensor.dtype, device=tensor.device)
     return output_tensor
 
+def rolling_median(tensor, window):
+    tensor_np = tensor.cpu().detach().numpy()
+    tensor_df = pd.DataFrame(tensor_np)
+    output_df = tensor_df.rolling(window).median()
+    output_tensor = torch.tensor(output_df.values, dtype=tensor.dtype, device=tensor.device)
+    return output_tensor
+
 def rolling_rank(np_data):
     return rankdata(np_data,method='min')[-1]
 
@@ -242,7 +256,6 @@ def rolling_cumulation(data_ts: torch.tensor, window:int) -> torch.tensor:
     output_np = np.array(output_df)
     output_ts = torch.tensor(output_np).squeeze()
     return output_ts
-
 
 def _max_drawdown(tensor_np: np.ndarray) -> float:
     ''' input is price '''

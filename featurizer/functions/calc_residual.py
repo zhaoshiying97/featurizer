@@ -59,7 +59,10 @@ def get_algebra_coef_ts(x,y):
         DESCRIPTION. the shope of param_ts is (*, n+1, 1). since the feature number is n and we add intercepte to it, make it n+1.
 
     """
-    # pdb.set_trace()
+    nan_num= torch.isnan(x).sum() + torch.isnan(y).sum()
+    inf = torch.isinf(x).any() or torch.isinf(y).any()
+    if nan_num > 0 or inf:
+        raise RuntimeError("Input tensors contain 'nan' or 'infinity'. Please process them.")
     one_arr_ts = torch.ones((*x.shape[:-1],1), device=x.device)
     X = torch.cat((one_arr_ts,x), dim=2)
     mpinv_ts = torch.pinverse(X)
@@ -80,7 +83,7 @@ def calc_residual3d_np(x_np, y_np, window_train=10, window_test=5, keep_first_tr
     
     train_xy = split_sample3d(data_xy, window=window_train, step=window_test, offset=0, keep_tail=False, merge_remain=False)
     test_xy = split_sample3d(data_xy, window=window_test, step=window_test, offset=window_train, keep_tail=False, merge_remain=True)
-    # pdb.set_trace()
+    
     if len(train_xy) > len(test_xy):
         if not split_end:
             train_xy = train_xy[:-abs(len(train_xy) - len(test_xy))]
@@ -109,7 +112,7 @@ def calc_residual3d_np(x_np, y_np, window_train=10, window_test=5, keep_first_tr
 
 
 def calc_residual3d_ts(x_tensor, y_tensor, window_train=10, window_test=5, keep_first_train_nan=False, split_end=True):
-   
+    # pdb.set_trace()
     data_xy = torch.cat((x_tensor, y_tensor), dim=2)
     
     train_xy = split_sample3d(data_xy, window=window_train, step=window_test, offset=0, keep_tail=False, merge_remain=False)

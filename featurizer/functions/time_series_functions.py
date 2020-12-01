@@ -178,7 +178,6 @@ def ema(tensor, window):
     output_tensor = torch.tensor(output_df.values, dtype=tensor.dtype, device=tensor.device)
     return output_tensor
 
-
 def rolling_min(tensor, window):
     tensor_np = tensor.cpu().detach().numpy()
     tensor_df = pd.DataFrame(tensor_np)
@@ -201,19 +200,20 @@ def rolling_median(tensor, window):
     return output_tensor
 
 def rolling_rank(np_data):
-    return rankdata(np_data)[-1]
+    return rankdata(np_data,method='min')[-1]
 
-def ts_rank(data_ts, window=10):
-    data_df=pd.DataFrame(data_ts)
+def ts_rank(tensor, window=10):
+    tensor_np = tensor.cpu().detach().numpy()
+    data_df=pd.DataFrame(tensor_np)
     output_df = data_df.rolling(window).apply(rolling_rank, raw=False)
     output_np= np.array(output_df)
     output_tf=torch.tensor(output_np)
     return output_tf
 
-#
-def rank(data_ts, axis=1, pct=True):
-    data_df=pd.DataFrame(data_ts)
-    output_df = data_df.rank(axis=axis, pct=pct)
+def rank(tensor, axis=1, pct=True):
+    tensor_np = tensor.cpu().detach().numpy()
+    data_df = pd.DataFrame(tensor_np)
+    output_df = data_df.rank(axis=axis, pct=pct,method='min')
     output_np = np.array(output_df)
     output_tensor = torch.tensor(output_np)
     return output_tensor
@@ -222,21 +222,23 @@ def rolling_scale(data_ts, window=10, k=1):
     output_tensor = k * data_ts / rolling_sum_(torch.abs(data_ts), window=window)
     return output_tensor
 
-def rolling_argmax(df_data):
-    return pd.DataFrame(df_data).idxmax()
+def rolling_argmax(np_data):
+    return pd.DataFrame(np_data).idxmax()
 
-def ts_argmax(data_ts,window=10):
-    data_df = pd.DataFrame(data_ts)
+def ts_argmax(tensor,window=10):
+    tensor_np = tensor.cpu().detach().numpy()
+    data_df = pd.DataFrame(tensor_np)
     output_df = data_df.rolling(window).apply(rolling_argmax)
     output_np = np.array(output_df)
     output_tensor = torch.tensor(output_np).squeeze()
     return output_tensor
 
-def rolling_argmin(df_data):
-    return pd.DataFrame(df_data).idxmin()
+def rolling_argmin(np_data):
+    return pd.DataFrame(np_data).idxmin()
 
-def ts_argmin(data_ts,window=10):
-    data_df = pd.DataFrame(data_ts)
+def ts_argmin(tensor,window=10):
+    tensor_np = tensor.cpu().detach().numpy()
+    data_df = pd.DataFrame(tensor_np)
     output_df = data_df.rolling(window).apply(rolling_argmin)
     output_np = np.array(output_df)
     output_tensor = torch.tensor(output_np).squeeze()

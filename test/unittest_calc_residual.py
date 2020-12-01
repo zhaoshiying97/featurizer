@@ -36,7 +36,7 @@ class TestOLSMethods(unittest.TestCase):
         # add some noise
         self.y = y_fitted + randn(self.n)
         self.y_2d = np.expand_dims(self.y, axis= 1)
-                
+
         # parameters calculated from built-in functions in Statsmodels.OLS
         self.A = sm.add_constant(self.x_2d)
         model = sm.OLS(self.y_2d, self.A)
@@ -158,6 +158,7 @@ class TestOLSMethods(unittest.TestCase):
     def test_calc_residual3d_ts_first_train_not_NaN(self):
         
         window_train, window_test = 8, 4
+
         '''
         manually make expected 2d residuals in numpy recursively
             - The first 10 entries should NOT be NaN

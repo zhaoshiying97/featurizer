@@ -59,6 +59,7 @@ def get_algebra_coef_ts(x,y):
         DESCRIPTION. the shope of param_ts is (*, n+1, 1). since the feature number is n and we add intercepte to it, make it n+1.
 
     """
+    # pdb.set_trace()
     one_arr_ts = torch.ones((*x.shape[:-1],1), device=x.device)
     X = torch.cat((one_arr_ts,x), dim=2)
     mpinv_ts = torch.pinverse(X)
@@ -105,6 +106,7 @@ def calc_residual3d_np(x_np, y_np, window_train=10, window_test=5, keep_first_tr
     resid_np = reduce(lambda x,y:np.concatenate([x,y], axis=1), residual_test_list, resid_np) 
         
     return resid_np
+
 
 def calc_residual3d_ts(x_tensor, y_tensor, window_train=10, window_test=5, keep_first_train_nan=False, split_end=True):
    

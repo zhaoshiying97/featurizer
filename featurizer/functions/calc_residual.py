@@ -134,7 +134,7 @@ def calc_residual3d_ts(x_tensor, y_tensor, window_train=10, window_test=5, keep_
     test_y_list = [data[:, :, -1:] for data in test_xy]
     
     param_list = list(map(lambda x, y: get_algebra_coef_ts(x, y), train_x_list, train_y_list))
-    print('ts param shape:', param_list[0].shape)
+    #print('ts param shape:', param_list[0].shape)
     residual_train_list = list(map(lambda x, y, p: get_residual_ts(x,y,p), train_x_list, train_y_list, param_list))
     residual_test_list = list(map(lambda x, y, p: get_residual_ts(x,y,p), test_x_list, test_y_list, param_list))
     if keep_first_train_nan:

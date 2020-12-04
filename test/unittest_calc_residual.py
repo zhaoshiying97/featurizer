@@ -50,7 +50,12 @@ class TestOLSMethods(unittest.TestCase):
         
         # 3d-x and 3d-y
         self.x_3d_ts = torch.stack((self.x_2d_ts, self.x_2d_ts)) # x_3d_ts.shape == (2,20,2)
-        self.y_3d_ts = self.y_2d_ts.unsqueeze(-1) # y_3d_ts.shape == (1,20,2)
+        self.y_3d_ts = self.y_2d_ts.unsqueeze(-1) # y_3d_ts.shape == (20,2,1)
+        print("the most important thing here is understanding the shape of the dataset")
+        print("x shape:{}".format(self.x_3d_ts.shape))
+        print("y shape:{}".format(self.y_3d_ts.shape))
+        print("what the meaning of that shape?, understanding it first")
+
         
         self.error_decimal_threshold = 5
     

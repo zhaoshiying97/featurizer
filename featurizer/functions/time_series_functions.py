@@ -18,7 +18,7 @@ from scipy.stats import rankdata
 import torch
 import numpy as np
 import pandas as pd
-from featurizer.functions.algebra_statistic import weighted_average, weighted_std, downside_std
+from featurizer.functions.algebra_statistic import weighted_average, weighted_std, downside_std, upside_std
 import pdb
 # https://stackoverflow.com/questions/14313510/how-to-calculate-moving-average-using-numpy
 def rolling_sum(tensor, window=1, dim=0):
@@ -124,11 +124,18 @@ def rolling_weighted_std(tensor, window, halflife=90):
     return output_tensor
 
 def rolling_downside_std(tensor, tensor_benchmark, window):
-    tensor_np = tensor.cpu().detach().numpy()
-    tensor_benchmark_np = tensor_benchmark.cpu().detach().numpy()
-    tensor_df = pd.DataFrame(tensor_np)
-    #tensor_benchmark_s = pd.Series(tensor_benchmark_np)
-    output_df = tensor_df.rolling(window).apply(lambda x: downside_std(x, tensor_benchmark_np))
+    diff_ts = tensor - tensor_benchmark
+    diff_np = diff_ts.cpu().detach().numpy()
+    diff_df = pd.DataFrame(diff_np)
+    output_df = diff_df.rolling(window).apply(lambda x: downside_std(x))
+    output_tensor = torch.tensor(output_df.values, dtype=tensor.dtype, device=tensor.device)
+    return output_tensor
+
+def rolling_upside_std(tensor, tensor_benchmark, window):
+    diff_ts = tensor - tensor_benchmark
+    diff_np = diff_ts.cpu().detach().numpy()
+    diff_df = pd.DataFrame(diff_np)
+    output_df = diff_df.rolling(window).apply(lambda x: upside_std(x))
     output_tensor = torch.tensor(output_df.values, dtype=tensor.dtype, device=tensor.device)
     return output_tensor
 

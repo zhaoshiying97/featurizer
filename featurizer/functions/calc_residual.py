@@ -194,10 +194,10 @@ def calc_residual3d_ts(x_tensor, y_tensor, window_train=10, window_test=5, keep_
     residual_test_list = list(map(lambda x, y, p: get_residual_ts(x,y,p), test_x_list, test_y_list, param_list))
     if keep_first_train_nan:
         residual_train_list[0].fill_(float("nan"))
-    resid_np = reduce(lambda x,y:torch.cat([x,y], dim=1), [residual_train_list[0]])
-    resid_np = reduce(lambda x,y:torch.cat([x,y], dim=1), residual_test_list, resid_np) 
+    resid_ts = reduce(lambda x,y:torch.cat([x,y], dim=1), [residual_train_list[0]])
+    resid_ts = reduce(lambda x,y:torch.cat([x,y], dim=1), residual_test_list, resid_ts) 
         
-    return resid_np
+    return resid_ts
 
 
 def calc_residual3d(x_tensor, y_tensor, window_train=10, window_test=5, keep_first_train_nan=False):

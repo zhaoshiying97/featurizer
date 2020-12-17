@@ -15,6 +15,7 @@ import statsmodels.api as sm
 import numpy as np
 from sklearn.linear_model import LinearRegression
 import pandas as pd
+from math import ceil, floor
 
 
 class TestOLSMethods(unittest.TestCase):
@@ -107,6 +108,7 @@ class TestOLSMethods(unittest.TestCase):
                 num_rolling = (n - window_train) // window_test
         else: # in this case, the last test size doesn't affect number of rolling
             num_rolling = (n - window_train) // window_test
+            
         end_test_size = n - window_train - window_test * (num_rolling-1)
         
         # Initialize the expected residuals differently based on whether to keep first train NaN or not
@@ -131,10 +133,37 @@ class TestOLSMethods(unittest.TestCase):
             
             cur_params = sm.OLS(y_train, x_train).fit().params.T
             cur_resid = np.expand_dims(y_test - x_test @ cur_params, axis=-1)
-            expected_resid = np.vstack((expected_resid, cur_resid)) # shape == (n,1)
+            expected_resid = np.vstack((expected_resid, cur_resid)) # shape == (n,1) at last round
 
         return expected_resid
+    
+    
+    # helper function: get expected residuals for calc_residual3d_basic*, where we do not identify between train and test
+    def get_expected_rolling_resid_basic(self, x_2dnp_with_constant, y, window, n, split_end):
+        if split_end:
+            num_rolling = int(ceil(n / window))
+        else:
+            num_rolling = int(floor(n / window))
+            
+        # initialize expected_resid as the accumulator
+        first_x, first_y = x_2dnp_with_constant[:window, :], y[:window]
+        cur_params = sm.OLS(first_y, first_x).fit().params.T
+        expected_resid = np.expand_dims(first_y - first_x @ cur_params, axis=1)
+            
+        # recursively get expected residuals
+        for i in range(1, num_rolling-1): # minus 1 in case last one is a different size
+            cur_x, cur_y = x_2dnp_with_constant[i*window : i*window+window, :], y[i*window : i*window+window]
+            cur_params = sm.OLS(cur_y, cur_x).fit().params.T
+            cur_resid = np.expand_dims(cur_y - cur_x @ cur_params, axis=-1)
+            expected_resid = np.vstack((expected_resid, cur_resid)) 
+        # deal with the last one separately
+        last_size = len(y) - (num_rolling-1)*window
+        last_x, last_y = x_2dnp_with_constant[-1*last_size:, :], y[-1*last_size:]
+        cur_params = sm.OLS(last_y, last_x).fit().params.T
+        cur_resid = np.expand_dims(last_y - last_x @ cur_params, axis=1)
+        expected_resid = np.vstack((expected_resid, cur_resid)) # shape == (n,1) 
         
+        return expected_resid
         
     def test_calc_residual3d_ts_first_train_NaN(self):
         

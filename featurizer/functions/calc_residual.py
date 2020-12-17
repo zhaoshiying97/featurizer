@@ -77,7 +77,7 @@ def get_residual_ts(x, y, param):
     return residual
 
 ########################################
-#  Next two functions do NOT separate  
+#  Next three functions do NOT identify  
 #  between train and test
 ########################################
 def calc_residual3d_basic_np(x_np, y_np, window=10, split_end=True):
@@ -119,8 +119,16 @@ def calc_residual3d_basic_ts(x_ts, y_ts, window=10, split_end=True):
     
     return resid_ts
 
+
+def calc_residual3d_basic(x, y, window=10, split_end=True):
+    if isinstance(x, torch.Tensor):
+        output = calc_residual3d_basic_ts(x_ts= x, y_ts= y, window= window, split_end= split_end)
+    else:
+        output = calc_residual3d_basic_np(x_np= x, y_np= y, window= window, split_end= split_end)
+    return output
+
 ########################################
-#  Next three functions separate  
+#  Next three functions identify  
 #  between train and test
 ########################################
 def calc_residual3d_np(x_np, y_np, window_train=10, window_test=5, keep_first_train_nan=False, split_end=True):

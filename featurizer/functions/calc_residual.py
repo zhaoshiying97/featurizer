@@ -76,6 +76,53 @@ def get_residual_ts(x, y, param):
     residual = y - predicted
     return residual
 
+########################################
+#  Next two functions do NOT separate  
+#  between train and test
+########################################
+def calc_residual3d_basic_np(x_np, y_np, window=10, split_end=True):
+    splitted_y = split_sample3d(y_np, window=window, step=window, offset=0, keep_tail=False, merge_remain=True)
+    splitted_x = split_sample3d(x_np, window=window, step=window, offset=0, keep_tail=False, merge_remain=True)
+    
+    if split_end:
+        last_y = splitted_y[-1]
+        last_y_new = np.split(last_y, [window], axis=1)
+        splitted_y = splitted_y[:-1] + last_y_new
+        
+        last_x = splitted_x[-1]
+        last_x_new = np.split(last_x, [window], axis=1)
+        splitted_x = splitted_x[:-1] + last_x_new
+        
+    param_list = list(map(lambda x, y: get_algebra_coef_np(x, y), splitted_x, splitted_y))
+    residual_list = list(map(lambda x, y, p: get_residual_np(x,y,p), splitted_x, splitted_y, param_list))  
+    resid_np = reduce(lambda x,y:np.concatenate([x,y], axis=1), residual_list) 
+    
+    return resid_np
+
+    
+def calc_residual3d_basic_ts(x_ts, y_ts, window=10, split_end=True):
+    splitted_y = split_sample3d(y_ts, window=window, step=window, offset=0, keep_tail=False, merge_remain=True)
+    splitted_x = split_sample3d(x_ts, window=window, step=window, offset=0, keep_tail=False, merge_remain=True)
+    
+    if split_end:
+        last_y = splitted_y[-1]
+        last_y_new = list(torch.split(last_y, [window, last_y.size()[1] - window], dim=1))
+        splitted_y = splitted_y[:-1] + last_y_new
+        
+        last_x = splitted_x[-1]
+        last_x_new = list(torch.split(last_x, [window, last_x.size()[1] - window], dim=1))
+        splitted_x = splitted_x[:-1] + last_x_new
+        
+    param_list = list(map(lambda x, y: get_algebra_coef_np(x, y), splitted_x, splitted_y))
+    residual_list = list(map(lambda x, y, p: get_residual_np(x,y,p), splitted_x, splitted_y, param_list))  
+    resid_ts = reduce(lambda x,y:torch.cat([x,y], dim=1), residual_list)
+    
+    return resid_ts
+
+########################################
+#  Next three functions separate  
+#  between train and test
+########################################
 def calc_residual3d_np(x_np, y_np, window_train=10, window_test=5, keep_first_train_nan=False, split_end=True):
     data_xy = np.concatenate((x_np, y_np), axis=2)
     # nan to num

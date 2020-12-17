@@ -303,7 +303,6 @@ class TestOLSMethods(unittest.TestCase):
         
         output_resid_np = calc_residual3d_np(x_3d_np, y_3d_np, window_train=window_train, 
                                              window_test=window_test, keep_first_train_nan= True, split_end=True)
-        # output_resid_np = output_resid.numpy()
         
         # Check if the difference between the expected and actual residuals sum up to almost 0
         #   - print the difference if failed
@@ -312,6 +311,71 @@ class TestOLSMethods(unittest.TestCase):
         self.assertTrue(abs(np.nansum(diff)) < err_threshold, diff)
         
         
+    def test_calc_residual3d_basic_divisible_by_window(self):
+        
+        window = 5
+        '''
+        manually make expected 2d residuals in numpy recursively
+           - Rolling should occur 4 times since 20 / 5 = 4
+        '''
+        expected_resid = self.get_expected_rolling_resid_basic(self.A, self.y, window, self.n, split_end=True)
+        expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
+        expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
+        
+        output_resid_ts = calc_residual3d_basic(self.x_3d_ts, self.y_3d_ts, window= window, split_end=True)
+        output_resid_np = output_resid_ts.numpy()
+        
+        # Check if the difference between the expected and actual residuals sum up to almost 0
+        #   - print the difference if failed
+        err_threshold = 0.00001 * self.error_decimal_threshold
+        diff = (output_resid_np - expected_resid_3d).round(3)
+        self.assertTrue(abs(np.nansum(diff)) < err_threshold, diff)
+        
+        
+    def test_calc_residual3d_basic_split_end(self):
+        
+        window = 9
+        split_end = True
+        '''
+        manually make expected 2d residuals in numpy recursively
+           - Rolling should occur 3 times, window sizes are 9, 9, 2, respectively
+        '''
+        
+        expected_resid = self.get_expected_rolling_resid_basic(self.A, self.y, window, self.n, split_end= split_end)
+        expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
+        expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
+        
+        output_resid_ts = calc_residual3d_basic(self.x_3d_ts, self.y_3d_ts, window= window, split_end= split_end)
+        output_resid_np = output_resid_ts.numpy()
+        
+        # Check if the difference between the expected and actual residuals sum up to almost 0
+        #   - print the difference if failed
+        err_threshold = 0.00001 * self.error_decimal_threshold
+        diff = (output_resid_np - expected_resid_3d).round(3)
+        self.assertTrue(abs(np.nansum(diff)) < err_threshold, diff)
+        
+        
+    def test_calc_residual3d_basic_split_end_False(self):
+        
+        window = 9
+        split_end = False
+        x_3d_np, y_3d_np = self.x_3d_ts.numpy(), self.y_3d_ts.numpy() # use numpy to test alternative input type
+
+        '''
+        manually make expected 2d residuals in numpy recursively
+           - Rolling should occur 2 times, window sizes are 9, 11, respectively
+        '''
+        expected_resid = self.get_expected_rolling_resid_basic(self.A, self.y, window, self.n, split_end= split_end)
+        expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
+        expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
+        
+        output_resid = calc_residual3d_basic(x_3d_np, y_3d_np, window= window, split_end= split_end)
+        
+        # Check if the difference between the expected and actual residuals sum up to almost 0
+        #   - print the difference if failed
+        err_threshold = 0.00001 * self.error_decimal_threshold
+        diff = (output_resid - expected_resid_3d).round(3)
+        self.assertTrue(abs(np.nansum(diff)) < err_threshold, diff)
      
 
 if __name__ =='__main__':

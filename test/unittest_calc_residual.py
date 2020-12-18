@@ -99,7 +99,7 @@ class TestOLSMethods(unittest.TestCase):
     
     
     # helper function: recursively get expected residuals for the case of rolling
-    def get_expected_rolling_resid(self, x_2dnp_with_constant, y, window_train, window_test, n, keep_first_train_nan, split_end):
+    def get_expected_rolling_resid_forecast(self, x_2dnp_with_constant, y, window_train, window_test, n, keep_first_train_nan, split_end):
         if split_end:
             if (n - window_train) % window_test: # the actual last test size is less than window_test
                 num_rolling = (n - window_train) // window_test + 1
@@ -137,15 +137,15 @@ class TestOLSMethods(unittest.TestCase):
         return expected_resid
     
     
-    # helper function: get expected residuals for calc_residual3d_basic*, where we do not identify between train and test
-    def get_expected_rolling_resid_basic(self, x_2dnp_with_constant, y, window, n, keep_first_nan):
+    # helper function: get expected residuals for calc_residual3d*, where we do not identify between train and test
+    def get_expected_rolling_resid(self, x_2dnp_with_constant, y, window, n, keep_first_nan):
 
         num_rolling = n - window + 1
             
         # initialize expected_resid as the accumulator
         first_x, first_y = x_2dnp_with_constant[:window, :], y[:window]
         cur_params = sm.OLS(first_y, first_x).fit().params.T
-        expected_resid = np.expand_dims(first_y - first_x @ cur_params, axis=1)f
+        expected_resid = np.expand_dims(first_y - first_x @ cur_params, axis=1)
         if keep_first_nan:
             expected_resid[:-1,:].fill(np.nan)
             
@@ -164,7 +164,7 @@ class TestOLSMethods(unittest.TestCase):
         
         return expected_resid
         
-    def test_calc_residual3d_ts_first_train_NaN(self):
+    def test_forecast_residual3d_ts_first_train_NaN(self):
         
         window_train, window_test = 5, 5
         '''
@@ -172,13 +172,13 @@ class TestOLSMethods(unittest.TestCase):
             - The first 5 entries should be NaN
             - Rolling should occur 3 times; Test window sizes are 5, 5, 5, respectively
         '''
-        expected_resid = self.get_expected_rolling_resid(self.A, self.y, window_train, window_test, self.n, 
-                                                         keep_first_train_nan= True, split_end=True)
+        expected_resid = self.get_expected_rolling_resid_forecast(self.A, self.y, window_train, window_test, self.n, 
+                                                                  keep_first_train_nan= True, split_end=True)
         expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
         expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
         
-        output_resid = calc_residual3d_ts(self.x_3d_ts, self.y_3d_ts, window_train=window_train, 
-                                          window_test=window_test, keep_first_train_nan= True, split_end=True)
+        output_resid = forecast_residual3d_ts(self.x_3d_ts, self.y_3d_ts, window_train=window_train, 
+                                              window_test=window_test, keep_first_train_nan= True, split_end=True)
         output_resid_np = np.array(output_resid)
         
         # Check if the difference between the expected and actual residuals sum up to almost 0
@@ -188,7 +188,7 @@ class TestOLSMethods(unittest.TestCase):
         self.assertTrue(abs(np.nansum(diff)) < err_threshold, diff)
         
         
-    def test_calc_residual3d_ts_first_train_not_NaN(self):
+    def test_forecast_residual3d_ts_first_train_not_NaN(self):
         
         window_train, window_test = 8, 4
 
@@ -197,12 +197,12 @@ class TestOLSMethods(unittest.TestCase):
             - The first 10 entries should NOT be NaN
             - Rolling should occur 3 times; Test window sizes are 4, 4, 4, respectively
         '''
-        expected_resid = self.get_expected_rolling_resid(self.A, self.y, window_train, window_test, self.n, 
-                                                         keep_first_train_nan=False, split_end=True)
+        expected_resid = self.get_expected_rolling_resid_forecast(self.A, self.y, window_train, window_test, self.n, 
+                                                                  keep_first_train_nan=False, split_end=True)
         expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
         expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
         
-        output_resid = calc_residual3d_ts(self.x_3d_ts, self.y_3d_ts, window_train=window_train, 
+        output_resid = forecast_residual3d_ts(self.x_3d_ts, self.y_3d_ts, window_train=window_train, 
                                           window_test=window_test, keep_first_train_nan= False, split_end=True)
         output_resid_np = np.array(output_resid)
         
@@ -213,7 +213,7 @@ class TestOLSMethods(unittest.TestCase):
         self.assertTrue(abs(np.sum(diff)) < err_threshold, diff)
 
 
-    def test_calc_residual3d_ts_irregular_last_test_size(self):
+    def test_forecast_residual3d_ts_irregular_last_test_size(self):
         
         window_train, window_test = 5, 4
         '''
@@ -221,13 +221,13 @@ class TestOLSMethods(unittest.TestCase):
            - The first 5 entries should be NaN
            - Rolling should occur 4 times; Test window sizes are 4, 4, 4, 3 respectively
         '''
-        expected_resid = self.get_expected_rolling_resid(self.A, self.y, window_train, window_test, self.n, 
-                                                         keep_first_train_nan=True, split_end=True)
+        expected_resid = self.get_expected_rolling_resid_forecast(self.A, self.y, window_train, window_test, self.n, 
+                                                                  keep_first_train_nan=True, split_end=True)
         expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
         expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
         
-        output_resid = calc_residual3d_ts(self.x_3d_ts, self.y_3d_ts, window_train=window_train, 
-                                          window_test=window_test, keep_first_train_nan= True, split_end=True)
+        output_resid = forecast_residual3d_ts(self.x_3d_ts, self.y_3d_ts, window_train=window_train, 
+                                              window_test=window_test, keep_first_train_nan= True, split_end=True)
         output_resid_np = output_resid.numpy()
         
         # Check if the difference between the expected and actual residuals sum up to almost 0
@@ -237,7 +237,7 @@ class TestOLSMethods(unittest.TestCase):
         self.assertTrue(abs(np.nansum(diff)) < err_threshold, diff)
         
         
-    def test_calc_residual3d_ts_irregular_last_test_size_nosplit(self):
+    def test_forecast_residual3d_ts_irregular_last_test_size_nosplit(self):
         
         window_train, window_test = 5, 4
         '''
@@ -245,13 +245,13 @@ class TestOLSMethods(unittest.TestCase):
            - The first 5 entries should be NaN
            - Rolling should occur 3 times; Test window sizes are 4, 4, 7, respectively
         '''
-        expected_resid = self.get_expected_rolling_resid(self.A, self.y, window_train, window_test, self.n, 
-                                                         keep_first_train_nan=True, split_end=False)
+        expected_resid = self.get_expected_rolling_resid_forecast(self.A, self.y, window_train, window_test, self.n, 
+                                                                  keep_first_train_nan=True, split_end=False)
         expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
         expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
         
-        output_resid = calc_residual3d_ts(self.x_3d_ts, self.y_3d_ts, window_train=window_train, 
-                                          window_test=window_test, keep_first_train_nan= True, split_end=False)
+        output_resid = forecast_residual3d_ts(self.x_3d_ts, self.y_3d_ts, window_train=window_train, 
+                                              window_test=window_test, keep_first_train_nan= True, split_end=False)
         output_resid_np = output_resid.numpy()
         
         # Check if the difference between the expected and actual residuals sum up to almost 0
@@ -261,7 +261,7 @@ class TestOLSMethods(unittest.TestCase):
         self.assertTrue(abs(np.nansum(diff)) < err_threshold, diff)
         
         
-    def test_calc_residual3d_np(self):
+    def test_forecast_residual3d_np(self):
         
         window_train, window_test = 5, 4
         x_3d_np = self.x_3d_ts.numpy()
@@ -269,14 +269,13 @@ class TestOLSMethods(unittest.TestCase):
         '''
         The parameters are identical to the previous
         '''
-        expected_resid = self.get_expected_rolling_resid(self.A, self.y, window_train, window_test, self.n, 
-                                                         keep_first_train_nan=True, split_end=False)
+        expected_resid = self.get_expected_rolling_resid_forecast(self.A, self.y, window_train, window_test, self.n, 
+                                                                  keep_first_train_nan=True, split_end=False)
         expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
         expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
         
-        output_resid_np = calc_residual3d_np(x_3d_np, y_3d_np, window_train=window_train, 
-                                             window_test=window_test, keep_first_train_nan= True, split_end=False)
-        # output_resid_np = output_resid.numpy()
+        output_resid_np = forecast_residual3d_np(x_3d_np, y_3d_np, window_train=window_train, 
+                                                 window_test=window_test, keep_first_train_nan= True, split_end=False)
         
         # Check if the difference between the expected and actual residuals sum up to almost 0
         #   - print the difference if failed
@@ -285,7 +284,7 @@ class TestOLSMethods(unittest.TestCase):
         self.assertTrue(abs(np.nansum(diff)) < err_threshold, diff)
         
         
-    def test_calc_residual3d_np_window_test_greater(self):
+    def test_forecast_residual3d_np_window_test_greater(self):
         
         window_train, window_test = 4, 7
         x_3d_np = self.x_3d_ts.numpy()
@@ -295,13 +294,13 @@ class TestOLSMethods(unittest.TestCase):
            - The first 4 entries should be NaN
            - Rolling should occur 3 times; Test window sizes are 7, 7, 2, respectively
         '''
-        expected_resid = self.get_expected_rolling_resid(self.A, self.y, window_train, window_test, self.n, 
-                                                         keep_first_train_nan=True, split_end=True)
+        expected_resid = self.get_expected_rolling_resid_forecast(self.A, self.y, window_train, window_test, self.n, 
+                                                                  keep_first_train_nan=True, split_end=True)
         expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
         expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
         
-        output_resid_np = calc_residual3d_np(x_3d_np, y_3d_np, window_train=window_train, 
-                                             window_test=window_test, keep_first_train_nan= True, split_end=True)
+        output_resid_np = forecast_residual3d_np(x_3d_np, y_3d_np, window_train=window_train, 
+                                                 window_test=window_test, keep_first_train_nan= True, split_end=True)
         
         # Check if the difference between the expected and actual residuals sum up to almost 0
         #   - print the difference if failed
@@ -310,7 +309,7 @@ class TestOLSMethods(unittest.TestCase):
         self.assertTrue(abs(np.nansum(diff)) < err_threshold, diff)
         
         
-    def test_calc_residual3d_basic_keep_fisrt_NaN(self):
+    def test_calc_residual3d_keep_fisrt_NaN(self):
         
         window = 9
         '''
@@ -318,11 +317,11 @@ class TestOLSMethods(unittest.TestCase):
            - Rolling should occur 12 times since 20 - 9 + 1 = 12
            - The first 8 entries should be NaN
         '''
-        expected_resid = self.get_expected_rolling_resid_basic(self.A, self.y, window, self.n, keep_first_nan=True)
+        expected_resid = self.get_expected_rolling_resid(self.A, self.y, window, self.n, keep_first_nan=True)
         expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
         expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
         
-        output_resid_ts = calc_residual3d_basic(self.x_3d_ts, self.y_3d_ts, window= window, keep_first_nan=True)
+        output_resid_ts = calc_residual3d(self.x_3d_ts, self.y_3d_ts, window= window, keep_first_nan=True)
         output_resid_np = output_resid_ts.numpy()
         
         # Check if the difference between the expected and actual residuals sum up to almost 0
@@ -332,7 +331,7 @@ class TestOLSMethods(unittest.TestCase):
         self.assertTrue(abs(np.nansum(diff)) < err_threshold, diff)
         
         
-    def test_calc_residual3d_basic_keep_fisrt_NaN_False(self):
+    def test_calc_residual3d_keep_fisrt_NaN_False(self):
         
         window = 11
         x_3d_np = self.x_3d_ts.numpy()
@@ -342,11 +341,11 @@ class TestOLSMethods(unittest.TestCase):
            - Rolling should occur 11 times since 20 - 11 + 1 = 10
            - No entries are NaN
         '''
-        expected_resid = self.get_expected_rolling_resid_basic(self.A, self.y, window, self.n, keep_first_nan=False)
+        expected_resid = self.get_expected_rolling_resid(self.A, self.y, window, self.n, keep_first_nan=False)
         expected_resid_3d_half = np.expand_dims(expected_resid, axis=0)
         expected_resid_3d = np.vstack((expected_resid_3d_half, expected_resid_3d_half))
         
-        output_resid_np = calc_residual3d_basic(x_3d_np, y_3d_np, window= window, keep_first_nan=False)
+        output_resid_np = calc_residual3d(x_3d_np, y_3d_np, window= window, keep_first_nan=False)
         
         # Check if the difference between the expected and actual residuals sum up to almost 0
         #   - print the difference if failed

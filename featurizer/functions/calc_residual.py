@@ -18,7 +18,6 @@ import torch
 import numpy as np
 from functools import reduce
 from featurizer.functions.split import split_sample3d
-import pdb
 
 # ================================================================== #
 # Analytic solution using Moore-Penrose pseudoinverse rather than    = 
@@ -80,7 +79,7 @@ def get_residual_ts(x, y, param):
 #  Next three functions do NOT identify  
 #  between train and test
 ########################################
-def calc_residual3d_basic_np(x_np, y_np, window=10, keep_first_nan=True):
+def calc_residual3d_np(x_np, y_np, window=10, keep_first_nan=True):
     splitted_y = split_sample3d(y_np, window=window, step=1, offset=0, keep_tail=False, merge_remain=True)
     splitted_x = split_sample3d(x_np, window=window, step=1, offset=0, keep_tail=False, merge_remain=True)
     
@@ -94,13 +93,13 @@ def calc_residual3d_basic_np(x_np, y_np, window=10, keep_first_nan=True):
     return resid_np
 
     
-def calc_residual3d_basic_ts(x_ts, y_ts, window=10, keep_first_nan=True):
+def calc_residual3d_ts(x_ts, y_ts, window=10, keep_first_nan=True):
     splitted_y = split_sample3d(y_ts, window=window, step=1, offset=0, keep_tail=False, merge_remain=True)
     splitted_x = split_sample3d(x_ts, window=window, step=1, offset=0, keep_tail=False, merge_remain=True)
     
-    param_list = list(map(lambda x, y: get_algebra_coef_np(x, y), splitted_x, splitted_y))
-    residual_list_first = get_residual_np(splitted_x[0], splitted_y[0], param_list[0])[:,:-1,:] # the first window-1 entries
-    residual_list_rest = list(map(lambda x, y, p: get_residual_np(x,y,p)[:,[-1],:], splitted_x, splitted_y, param_list))  
+    param_list = list(map(lambda x, y: get_algebra_coef_ts(x, y), splitted_x, splitted_y))
+    residual_list_first = get_residual_ts(splitted_x[0], splitted_y[0], param_list[0])[:,:-1,:] # the first window-1 entries
+    residual_list_rest = list(map(lambda x, y, p: get_residual_ts(x,y,p)[:,[-1],:], splitted_x, splitted_y, param_list))  
     if keep_first_nan:
          residual_list_first.fill_(float("nan"))
     resid_ts = reduce(lambda x,y:torch.cat([x,y], dim=1), [residual_list_first] + residual_list_rest)
@@ -108,18 +107,18 @@ def calc_residual3d_basic_ts(x_ts, y_ts, window=10, keep_first_nan=True):
     return resid_ts
 
 
-def calc_residual3d_basic(x, y, window=10, keep_first_nan=True):
+def calc_residual3d(x, y, window=10, keep_first_nan=True):
     if isinstance(x, torch.Tensor):
-        output = calc_residual3d_basic_ts(x_ts= x, y_ts= y, window= window, keep_first_nan= keep_first_nan)
+        output = calc_residual3d_ts(x_ts= x, y_ts= y, window= window, keep_first_nan= keep_first_nan)
     else:
-        output = calc_residual3d_basic_np(x_np= x, y_np= y, window= window, keep_first_nan= keep_first_nan)
+        output = calc_residual3d_np(x_np= x, y_np= y, window= window, keep_first_nan= keep_first_nan)
     return output
 
 ########################################
 #  Next three functions identify  
 #  between train and test
 ########################################
-def calc_residual3d_np(x_np, y_np, window_train=10, window_test=5, keep_first_train_nan=False, split_end=True):
+def forecast_residual3d_np(x_np, y_np, window_train=10, window_test=5, keep_first_train_nan=False, split_end=True):
     data_xy = np.concatenate((x_np, y_np), axis=2)
     # nan to num
     data_xy = np.nan_to_num(data_xy)
@@ -154,7 +153,7 @@ def calc_residual3d_np(x_np, y_np, window_train=10, window_test=5, keep_first_tr
     return resid_np
 
 
-def calc_residual3d_ts(x_tensor, y_tensor, window_train=10, window_test=5, keep_first_train_nan=False, split_end=True):
+def forecast_residual3d_ts(x_tensor, y_tensor, window_train=10, window_test=5, keep_first_train_nan=False, split_end=True):
     # pdb.set_trace()
     data_xy = torch.cat((x_tensor, y_tensor), dim=2)
     
@@ -188,11 +187,11 @@ def calc_residual3d_ts(x_tensor, y_tensor, window_train=10, window_test=5, keep_
     return resid_ts
 
 
-def calc_residual3d(x_tensor, y_tensor, window_train=10, window_test=5, keep_first_train_nan=False):
+def forecast_residual3d(x_tensor, y_tensor, window_train=10, window_test=5, keep_first_train_nan=False):
     if isinstance(x_tensor, torch.Tensor):
-        output = calc_residual3d_ts(x_tensor=x_tensor, y_tensor=y_tensor, window_train=window_train, window_test=window_test, keep_first_train_nan=keep_first_train_nan)
+        output = forecast_residual3d_ts(x_tensor=x_tensor, y_tensor=y_tensor, window_train=window_train, window_test=window_test, keep_first_train_nan=keep_first_train_nan)
     else:
-        output = calc_residual3d_np(x_np=x_tensor, y_np=y_tensor, window_train=window_train, window_test=window_test, keep_first_train_nan=keep_first_train_nan)
+        output = forecast_residual3d_np(x_np=x_tensor, y_np=y_tensor, window_train=window_train, window_test=window_test, keep_first_train_nan=keep_first_train_nan)
     return output
 
 

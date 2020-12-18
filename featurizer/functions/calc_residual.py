@@ -85,11 +85,11 @@ def calc_residual3d_basic_np(x_np, y_np, window=10, keep_first_nan=True):
     splitted_x = split_sample3d(x_np, window=window, step=1, offset=0, keep_tail=False, merge_remain=True)
     
     param_list = list(map(lambda x, y: get_algebra_coef_np(x, y), splitted_x, splitted_y))
-    residual_list_first = [get_residual_np(splitted_x[0], splitted_y[0], param_list[0])[:,:-1,:]] # the first window-1 entries
+    residual_list_first = get_residual_np(splitted_x[0], splitted_y[0], param_list[0])[:,:-1,:] # the first window-1 entries
     residual_list_rest = list(map(lambda x, y, p: get_residual_np(x,y,p)[:,[-1],:], splitted_x, splitted_y, param_list))  
     if keep_first_nan:
         residual_list_first.fill(np.nan)
-    resid_np = reduce(lambda x,y:np.concatenate([x,y], axis=1), residual_list_first + residual_list_rest) 
+    resid_np = reduce(lambda x,y:np.concatenate([x,y], axis=1), [residual_list_first] + residual_list_rest) 
     
     return resid_np
 
@@ -99,11 +99,11 @@ def calc_residual3d_basic_ts(x_ts, y_ts, window=10, keep_first_nan=True):
     splitted_x = split_sample3d(x_ts, window=window, step=1, offset=0, keep_tail=False, merge_remain=True)
     
     param_list = list(map(lambda x, y: get_algebra_coef_np(x, y), splitted_x, splitted_y))
-    residual_list_first = [get_residual_np(splitted_x[0], splitted_y[0], param_list[0])[:,:-1,:]] # the first window-1 entries
+    residual_list_first = get_residual_np(splitted_x[0], splitted_y[0], param_list[0])[:,:-1,:] # the first window-1 entries
     residual_list_rest = list(map(lambda x, y, p: get_residual_np(x,y,p)[:,[-1],:], splitted_x, splitted_y, param_list))  
     if keep_first_nan:
          residual_list_first.fill_(float("nan"))
-    resid_ts = reduce(lambda x,y:torch.cat([x,y], dim=1), residual_list_first + residual_list_rest)
+    resid_ts = reduce(lambda x,y:torch.cat([x,y], dim=1), [residual_list_first] + residual_list_rest)
     
     return resid_ts
 

@@ -109,14 +109,14 @@ class ForecastResidual(Functor):
 class ResidualRollingMean(Functor):
     """Idiosyncratic (returns) mean"""
 
-    def __init__(self, window_resid=10, window=3):
-        self._window_resid = window_resid
+    def __init__(self, window_train=10, window=3):
+        self._window_train = window_train
         self.window = window
         
     def forward(self, tensor_x, tensor_y):
         if tensor_x.dim() < tensor_y.dim():
             tensor_x = tensor_x.expand_as(tensor_y)
-        residual = calc_residual3d(tensor_x, tensor_y, window=self.window_resid, keep_first_nan=True)
+        residual = calc_residual3d(tensor_x, tensor_y, window=self.window_train, keep_first_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         return tsf.rolling_mean(residual, self._window)
     
@@ -140,15 +140,15 @@ class ForecastResidualRollingMean(Functor):
 class ResidualRollingWeightedMean(Functor):
     """Idiosyncratic (returns) weighted mean"""
 
-    def __init__(self, window_resid=10, window=3, halflife= 90):
-        self._window_resid = window_resid
+    def __init__(self, window_train=10, window=3, halflife= 90):
+        self._window_train = window_train
         self._window = window
         self._halflife = halflife
         
     def forward(self, tensor_x, tensor_y):
         if tensor_x.dim() < tensor_y.dim():
             tensor_x = tensor_x.expand_as(tensor_y)
-        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_resid, keep_first_nan=True)
+        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_train, keep_first_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         return tsf.rolling_weighted_mean(residual, window= self._window, halflife= self._halflife)
     
@@ -173,14 +173,14 @@ class ForecastResidualRollingWeightedMean(Functor):
 class ResidualRollingStd(Functor):
     """Idiosyncratic (returns) STD"""
 
-    def __init__(self, window_resid=10, window=3):
-        self._window_resid = window_resid
+    def __init__(self, window_train=10, window=3):
+        self._window_train = window_train
         self._window = window
         
     def forward(self, tensor_x, tensor_y):
         if tensor_x.dim() < tensor_y.dim():
             tensor_x = tensor_x.expand_as(tensor_y)
-        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_resid, keep_first_nan=True)
+        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_train, keep_first_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         return tsf.rolling_std(residual, self._window)
     
@@ -204,15 +204,15 @@ class ForecastResidualRollingStd(Functor):
 class ResidualRollingWeightedStd(Functor):
     """Idiosyncratic (returns) weighted STD"""
 
-    def __init__(self, window_resid=10, window=3, halflife= 90):
-        self._window_resid = window_resid
+    def __init__(self, window_train=10, window=3, halflife= 90):
+        self._window_train = window_train
         self._window = window
         self._halflife = halflife
         
     def forward(self, tensor_x, tensor_y):
         if tensor_x.dim() < tensor_y.dim():
             tensor_x = tensor_x.expand_as(tensor_y)
-        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_resid, keep_first_nan=True)
+        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_train, keep_first_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         return tsf.rolling_weighted_std(residual, window= self._window, halflife= self._halflife)
     
@@ -237,15 +237,15 @@ class ForecastResidualRollingWeightedStd(Functor):
 class ResidualRollingDownsideStd(Functor):
     """Idiosyncratic (returns) downside STD"""
 
-    def __init__(self, window_resid=10, window=3):
-        self._window_resid = window_resid
+    def __init__(self, window_train=10, window=3):
+        self._window_train = window_train
         self._window = window
         
     def forward(self, tensor_x, tensor_y, benchmark=None):
         import torch
         if tensor_x.dim() < tensor_y.dim():
             tensor_x = tensor_x.expand_as(tensor_y)
-        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_resid, keep_first_nan=True)
+        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_train, keep_first_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         if benchmark is None:
             benchmark = torch.zeros_like(residual)
@@ -274,15 +274,15 @@ class ForecastResidualRollingDownsideStd(Functor):
 class ResidualRollingUpsideStd(Functor):
     """Idiosyncratic (returns) upside STD"""
 
-    def __init__(self, window_resid=10, window=3):
-        self._window_resid = window_resid
+    def __init__(self, window_train=10, window=3):
+        self._window_train = window_train
         self._window = window
         
     def forward(self, tensor_x, tensor_y, benchmark=None):
         import torch
         if tensor_x.dim() < tensor_y.dim():
             tensor_x = tensor_x.expand_as(tensor_y)
-        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_resid, keep_first_nan=True)
+        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_train, keep_first_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         if benchmark is None:
             benchmark = torch.zeros_like(residual)
@@ -311,14 +311,14 @@ class ForecastResidualRollingUpsideStd(Functor):
 class ResidualRollingMax(Functor):
     """Idiosyncratic (returns) max"""
 
-    def __init__(self, window_resid=10, window=3):
-        self._window_resid = window_resid
+    def __init__(self, window_train=10, window=3):
+        self._window_train = window_train
         self._window = window
         
     def forward(self, tensor_x, tensor_y):
         if tensor_x.dim() < tensor_y.dim():
             tensor_x = tensor_x.expand_as(tensor_y)
-        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_resid, keep_first_nan=True)
+        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_train, keep_first_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         return tsf.rolling_max(residual, self._window)
     
@@ -342,14 +342,14 @@ class ForecastResidualRollingMax(Functor):
 class ResidualRollingMin(Functor):
     """Idiosyncratic (returns) min"""
 
-    def __init__(self, window_resid=10, window=3):
-        self._window_resid = window_resid
+    def __init__(self, window_train=10, window=3):
+        self._window_train = window_train
         self._window = window
         
     def forward(self, tensor_x, tensor_y):
         if tensor_x.dim() < tensor_y.dim():
             tensor_x = tensor_x.expand_as(tensor_y)
-        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_resid, keep_first_nan=True)
+        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_train, keep_first_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         return tsf.rolling_min(residual, self._window)
     
@@ -374,14 +374,14 @@ class ForecastResidualRollingMin(Functor):
 class ResidualRollingMedian(Functor):
     """Idiosyncratic (returns) median"""
 
-    def __init__(self, window_resid=10, window=3):
-        self._window_resid = window_resid
+    def __init__(self, window_train=10, window=3):
+        self._window_train = window_train
         self._window = window
         
     def forward(self, tensor_x, tensor_y):
         if tensor_x.dim() < tensor_y.dim():
             tensor_x = tensor_x.expand_as(tensor_y)
-        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_resid, keep_first_nan=True)
+        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_train, keep_first_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         return tsf.rolling_median(residual, self._window)
     
@@ -404,14 +404,14 @@ class ForecastResidualRollingMedian(Functor):
 
 class ResidualRollingSkew(Functor):
 
-    def __init__(self, window_resid=10, window=3):
-        self._window_resid = window_resid
+    def __init__(self, window_train=10, window=3):
+        self._window_train = window_train
         self._window = window
         
     def forward(self, tensor_x, tensor_y):
         if tensor_x.dim() < tensor_y.dim():
             tensor_x = tensor_x.expand_as(tensor_y)
-        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_resid, keep_first_nan=True)
+        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_train, keep_first_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         return tsf.rolling_skew(residual, self._window)
     
@@ -433,14 +433,14 @@ class ForecastResidualRollingSkew(Functor):
 
 class ResidualRollingKurt(Functor):
 
-    def __init__(self, window_resid=10, window=3):
-        self._window_resid = window_resid
+    def __init__(self, window_train=10, window=3):
+        self._window_train = window_train
         self._window = window
         
     def forward(self, tensor_x, tensor_y):
         if tensor_x.dim() < tensor_y.dim():
             tensor_x = tensor_x.expand_as(tensor_y)
-        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_resid, keep_first_nan=True)
+        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_train, keep_first_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         return tsf.rolling_kurt(residual, self._window)
     
@@ -462,14 +462,14 @@ class ForecastResidualRollingKurt(Functor):
 
 class ResidualRollingCumulation(Functor):
     
-    def __init__(self, window_resid=10, window=3):
-        self._window_resid = window_resid
+    def __init__(self, window_train=10, window=3):
+        self._window_train = window_train
         self._window = window
         
     def forward(self, tensor_x, tensor_y):
         if tensor_x.dim() < tensor_y.dim():
             tensor_x = tensor_x.expand_as(tensor_y)
-        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_resid, keep_first_nan=True)
+        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_train, keep_first_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         return tsf.rolling_cumulation(data_ts=residual, window=self._window)
     
@@ -495,14 +495,14 @@ class ResidualRollingVARMOM(Functor):
     VARMOM is volitility adjusted momentum; in other words, it's a Sharp Ratio for residuals with 0 degree of freedom
     '''
     
-    def __init__(self, window_resid=10, window=3):
-        self._window_resid = window_resid
+    def __init__(self, window_train=10, window=3):
+        self._window_train = window_train
         self._window = window
         
     def forward(self, tensor_x, tensor_y):
         if tensor_x.dim() < tensor_y.dim():
             tensor_x = tensor_x.expand_as(tensor_y)
-        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_resid, keep_first_nan=True)
+        residual = calc_residual3d(tensor_x, tensor_y, window=self._window_train, keep_first_nan=True)
         residual = residual.squeeze(-1).transpose(0,1)
         varmom = tsf.rolling_mean_(residual, window=self._window) / tsf.rolling_std_dof_0(residual, window=self._window)
         return varmom
@@ -530,8 +530,8 @@ class ForecastResidualRollingVARMOM(Functor):
     
 class ResidualRollingMaxDrawdownFromReturns(Functor):
     ''' input is residual returns'''
-    def __init__(self, window_resid=10, window=3):
-        self._window_resid = window_resid
+    def __init__(self, window_train=10, window=3):
+        self._window_train = window_train
         self._window = window
     def forward(self, tensor_x, tensor_y):
         if tensor_x.dim() < tensor_y.dim():

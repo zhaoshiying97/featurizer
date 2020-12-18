@@ -217,7 +217,7 @@ class ResidualRollingWeightedStd(Functor):
         return tsf.rolling_weighted_std(residual, window= self._window, halflife= self._halflife)
     
     
-class ForecastRollingWeightedStd(Functor):
+class ForecastResidualRollingWeightedStd(Functor):
     """Idiosyncratic (returns) weighted STD"""
 
     def __init__(self, window_train=10, window_test=3, window=3, halflife= 90):

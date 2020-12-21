@@ -153,6 +153,24 @@ def calc_residual3d(x_tensor, y_tensor, window_train=10, window_test=5, keep_fir
     return output
 
 
+def get_cross_sectional_residual(x, y):
+    
+    # y is N * S like
+    # x is N * S * f like 
+    # where N is dates, S is stocks, f is factor of style or industries
+    y = y . unsqueeze(-1)
+    mpinv = torch.pinverse(x)
+    param  = mpinv . matmul(y)
+    
+    y_hat = x.matmul (param)
+    
+    res = y - y_hat
+    res = res.squeeze()
+    return res
+    
+    
+    
+
 if __name__ == "__main__":
     import time
     np.random.seed(123)

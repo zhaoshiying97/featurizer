@@ -212,7 +212,7 @@ def get_cross_sectional_residual(x, y, fit_intercept = False):
     else:
         X = x
     mpinv = torch.pinverse(X)
-    param  = mpinv . matmul(y)
+    param  = mpinv.matmul(y)
     
     y_hat = X.matmul (param)
     
